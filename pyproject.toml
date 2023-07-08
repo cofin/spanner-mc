@@ -21,7 +21,7 @@ google-cloud-secret-manager = "*"
 google-re2 = {version = ">=1.0", platform = 'linux'}
 litestar = {git = "https://github.com/litestar-org/litestar.git", branch = "main", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog'], allow-prereleases = true}
 passlib = {version = "*", extras = ["argon2"]}
-pydantic = {version = ">=1.9.0", extras = ["dotenv", "email"]}
+pydantic = {version = ">=1.9.0,<2.0.0", extras = ["dotenv", "email"]}
 python = ">=3.9,<3.12"
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
