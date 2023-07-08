@@ -27,7 +27,6 @@ sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
 
 [tool.poetry.group.dev.dependencies]
-asyncpg-stubs = "*"
 black = "*"
 coverage = {extras = ["toml"], version = "*"}
 mypy = ">=1.0.0"

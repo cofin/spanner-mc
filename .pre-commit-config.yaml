@@ -58,8 +58,6 @@ repos:
             structlog,
             aiosmtplib,
             alembic,
-            asyncpg,
-            asyncpg-stubs,
             httpx,
             pytest,
             pytest-docker,

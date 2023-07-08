@@ -191,7 +191,6 @@ class DatabaseSettings(BaseSettings):
         env_prefix = "DB_"
         case_sensitive = True
 
-    ENGINE: str = "postgresql+asyncpg"
     ECHO: bool = False
     ECHO_POOL: bool | Literal["debug"] = False
     POOL_DISABLE: bool = False

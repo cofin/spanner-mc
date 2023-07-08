@@ -3,7 +3,6 @@ from typing import Any
 from uuid import UUID
 
 import msgspec
-from asyncpg.pgproto import pgproto
 from pydantic import BaseModel
 
 __all__ = [
@@ -19,7 +18,7 @@ __all__ = [
 def _default(value: Any) -> str:
     if isinstance(value, BaseModel):
         return str(value.dict(by_alias=True))
-    if isinstance(value, pgproto.UUID | UUID):
+    if isinstance(value, UUID):
         return str(value)
     if isinstance(value, datetime.datetime):
         return convert_datetime_to_gmt_iso(value)
