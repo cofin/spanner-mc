@@ -13,12 +13,11 @@ import os
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Final, Literal
+from typing import Final, Literal
 
 import google.auth
 from dotenv import load_dotenv
 from litestar.data_extractors import RequestExtractorField, ResponseExtractorField  # noqa: TCH002
-from packaging.version import Version
 from pydantic import BaseSettings as _BaseSettings
 from pydantic import SecretBytes, ValidationError, validator
 
@@ -30,11 +29,9 @@ __all__ = ["BASE_DIR", "BaseSettings", "app", "openapi", "server", "cloud", "db"
 
 logger = logging.getLogger()
 
-T_ScriptVersion = Version
 DEFAULT_MODULE_NAME = "spannermc"
-BASE_DIR: Final = utils.module_loader.module_to_os_path(DEFAULT_MODULE_NAME)
-
-version = importlib.metadata.version("spannermc")
+BASE_DIR: Final = utils.module_to_os_path(DEFAULT_MODULE_NAME)
+version = importlib.metadata.version(DEFAULT_MODULE_NAME)
 
 
 class BaseSettings(_BaseSettings):
@@ -98,7 +95,13 @@ class AppSettings(BaseSettings):
     ENVIRONMENT: str = "prod"
     """'dev', 'prod', etc."""
     SECRET_KEY: SecretBytes
-
+    """secret key"""
+    JWT_ENCRYPTION_ALGORITHM: str = "HS256"
+    """JWT encryption algorithm"""
+    CSRF_COOKIE_NAME: str = "csrftoken"
+    """CSRF Cookie Name to use when configured."""
+    CSRF_COOKIE_SECURE: bool = False
+    """CSRF Secure Cookie enforcement."""
     BACKEND_CORS_ORIGINS: list[str] = ["*"]
     """Backend CORS Origin configuration."""
 
@@ -109,7 +112,7 @@ class AppSettings(BaseSettings):
         Returns:
             `self.NAME`, all lowercase and hyphens instead of spaces.
         """
-        return utils.text_tools.slugify(self.NAME)
+        return utils.slugify(self.NAME)
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(
@@ -197,8 +200,7 @@ class DatabaseSettings(BaseSettings):
     POOL_TIMEOUT: int = 30
     POOL_RECYCLE: int = 300
     POOL_PRE_PING: bool = True
-    CONNECT_ARGS: dict[str, Any] = {}
-    URL: str = "postgresql+asyncpg://dbma:dbma@localhost:5432/dbma"
+    URL: str = "spanner+spanner:///projects/emulator-test-project/instances/test-instance/databases/test-database"
     MIGRATION_CONFIG: str = f"{BASE_DIR}/lib/db/alembic.ini"
     MIGRATION_PATH: str = f"{BASE_DIR}/lib/db/migrations"
     MIGRATION_DDL_VERSION_TABLE: str = "ddl_version"
@@ -220,29 +222,9 @@ class CloudSettings(BaseSettings):
             "ENV_SECRETS": {"env": "ENV_SECRETS"},
         }
 
-    GOOGLE_PROJECT: str
+    ACTIVE_CLOUD: str = "local"
+    GOOGLE_PROJECT: str | None = None
     GOOGLE_CREDENTIALS: str | None = None
-    ENV_SECRETS: str = "runtime-secrets"
-
-
-class AWSCloudConfiguration(BaseSettings):
-    """AWS Cloud Configuration."""
-
-    class Config:
-        """Settings Config Metadata."""
-
-        env_prefix = "AWS_"
-        case_sensitive = True
-        fields = {
-            "CREDENTIALS": {
-                "env": "AWS_APPLICATION_CREDENTIALS",
-            },
-            "PROJECT": {"env": "GOOGLE_PROJECT_ID"},
-            "ENV_SECRETS": {"env": "ENV_SECRETS"},
-        }
-
-    PROJECT: str
-    CREDENTIALS: str | None = None
     ENV_SECRETS: str = "runtime-secrets"
 
 
@@ -322,8 +304,10 @@ def get_settings(
     Returns:
         Settings: _description_
     """
+    active_cloud = os.environ.get("CLOUD", "local")
     secret_id = os.environ.get("ENV_SECRETS", None)
     env_file_exists = Path(f"{os.curdir}/.env").is_file()
+
     local_service_account_exists = Path(f"{os.curdir}/service_account.json").is_file()
     if local_service_account_exists:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
@@ -334,6 +318,13 @@ def get_settings(
     if not env_file_exists and secret_id:
         secret = gcp_secret_manager.get_secret(project_id, secret_id)
         load_dotenv(stream=io.StringIO(secret))
+    elif active_cloud == "aws":
+        from spannermc.lib.cloud import aws as aws_secret_manager
+
+        if not env_file_exists and secret_id:
+            secret = aws_secret_manager.get_secret(secret_id)
+            load_dotenv(stream=io.StringIO(secret))
+
     try:
         app: AppSettings = AppSettings.parse_obj({})
         db: DatabaseSettings = DatabaseSettings.parse_obj({})

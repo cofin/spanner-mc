@@ -22,9 +22,7 @@ __all__ = [
 
 class UserDTO(SQLAlchemyDTO[User]):
     config = dto.config(
-        exclude={  # type: ignore
-            "hashed_password",
-        },
+        exclude=("hashed_password",),
         max_nested_depth=1,
     )
 

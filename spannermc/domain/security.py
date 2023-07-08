@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 __all__ = ["current_user_from_token", "auth"]
 
 
-async def provide_user(request: Request[User, Token, Any]) -> User:
+def provide_user(request: Request[User, Token, Any]) -> User:
     """Get the user from the connection.
 
     Args:
@@ -29,7 +29,7 @@ async def provide_user(request: Request[User, Token, Any]) -> User:
     return request.user
 
 
-async def current_user_from_token(token: Token, connection: ASGIConnection[Any, Any, Any, Any]) -> User | None:
+def current_user_from_token(token: Token, connection: ASGIConnection[Any, Any, Any, Any]) -> User | None:
     """Lookup current user from local JWT token.
 
     Fetches the user information from the database
@@ -43,10 +43,10 @@ async def current_user_from_token(token: Token, connection: ASGIConnection[Any, 
     Returns:
         User: User record mapped to the JWT identifier
     """
-    async with UserService.new(
+    with UserService.new(
         statement=select(User).options(noload("*")),
     ) as service:
-        user = await service.get_one_or_none(email=token.sub)
+        user = service.get_one_or_none(email=token.sub)
         if user and user.is_active:
             return user
     return None

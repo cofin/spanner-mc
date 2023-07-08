@@ -1,20 +1,22 @@
-from google.cloud import secretmanager as sm
+import botocore
+import botocore.session
+from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 
 __all__ = ["get_secret"]
 
+client = botocore.session.get_session().create_client("secretsmanager")
+cache_config = SecretCacheConfig()
+cache = SecretCache(config=cache_config, client=client)
 
-def get_secret(project_id: str, secret_id: str, version_id: str = "latest") -> str:
-    """Load Secret from GCP Secret Manager.
+
+def get_secret(secret_id: str) -> str:
+    """Load Secret from AWS Secret Manager.
 
     Args:
-        project_id (str): _description_
-        secret_id (str): _description_
-        version_id (str, optional): _description_. Defaults to "latest".
+        secret_id (str): Name of the secret to load
 
     Returns:
-        str: _description_
+        str: The secret
     """
-    client = sm.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-    response = client.access_secret_version(request={"name": name})
-    return response.payload.data.decode("UTF-8")
+
+    return cache.get_secret_string(secret_id)

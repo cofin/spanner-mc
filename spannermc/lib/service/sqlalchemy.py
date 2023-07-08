@@ -249,6 +249,41 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
         return self.repository.list_and_count(*filters, **kwargs)
 
     @overload
+    def to_dto(self, data: ModelT) -> ModelT:
+        ...
+
+    @overload
+    def to_dto(
+        self, data: Sequence[ModelT], total: int | None = None, *filters: FilterTypes
+    ) -> OffsetPagination[ModelT]:
+        ...
+
+    def to_dto(
+        self, data: ModelT | Sequence[ModelT], total: int | None = None, *filters: FilterTypes
+    ) -> ModelT | OffsetPagination[ModelT]:
+        """Convert the object to a format expected by the DTO handler
+
+        Args:
+            data: The return from one of the service calls.
+            total: the total number of rows in the data
+            *filters: Collection route filters.
+
+        Returns:
+            The list of instances retrieved from the repository.
+        """
+        if not isinstance(data, Sequence | list):
+            return data
+        limit_offset = self.find_filter(LimitOffset, *filters)
+        total = total if total else len(data)
+        limit_offset = limit_offset if limit_offset is not None else LimitOffset(limit=len(data), offset=0)
+        return OffsetPagination(
+            items=list(data),
+            limit=limit_offset.limit,
+            offset=limit_offset.offset,
+            total=total,
+        )
+
+    @overload
     def to_schema(self, dto: type[ModelDTOT], data: ModelT) -> ModelDTOT:
         ...
 

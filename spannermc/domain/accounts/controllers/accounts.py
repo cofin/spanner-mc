@@ -7,11 +7,11 @@ from litestar import Controller, delete, get, patch, post
 from litestar.di import Provide
 from litestar.params import Dependency, Parameter
 
-from app.domain import urls
-from app.domain.accounts.dependencies import provides_user_service
-from app.domain.accounts.dtos import UserCreate, UserCreateDTO, UserDTO, UserUpdate, UserUpdateDTO
-from app.domain.accounts.guards import requires_superuser
-from app.lib import log
+from spannermc.domain import urls
+from spannermc.domain.accounts.dependencies import provides_user_service
+from spannermc.domain.accounts.dtos import UserCreate, UserCreateDTO, UserDTO, UserUpdate, UserUpdateDTO
+from spannermc.domain.accounts.guards import requires_superuser
+from spannermc.lib import log
 
 __all__ = ["AccountController"]
 
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from litestar.dto.factory import DTOData
     from litestar.pagination import OffsetPagination
 
-    from app.domain.accounts.models import User
-    from app.domain.accounts.services import UserService
+    from spannermc.domain.accounts.models import User
+    from spannermc.domain.accounts.services import UserService
 
 
 logger = log.get_logger()
@@ -46,11 +46,11 @@ class AccountController(Controller):
         path=urls.ACCOUNT_LIST,
         cache=60,
     )
-    async def list_users(
+    def list_users(
         self, users_service: UserService, filters: list[FilterTypes] = Dependency(skip_validation=True)
     ) -> OffsetPagination[User]:
         """List users."""
-        results, total = await users_service.list_and_count(*filters)
+        results, total = users_service.list_and_count(*filters)
         return users_service.to_dto(results, total, *filters)
 
     @get(
@@ -59,7 +59,7 @@ class AccountController(Controller):
         path=urls.ACCOUNT_DETAIL,
         summary="Retrieve the details of a user.",
     )
-    async def get_user(
+    def get_user(
         self,
         users_service: UserService,
         user_id: UUID = Parameter(
@@ -68,7 +68,7 @@ class AccountController(Controller):
         ),
     ) -> User:
         """Get a user."""
-        db_obj = await users_service.get(user_id)
+        db_obj = users_service.get(user_id)
         return users_service.to_dto(db_obj)
 
     @post(
@@ -80,14 +80,14 @@ class AccountController(Controller):
         path=urls.ACCOUNT_CREATE,
         dto=UserCreateDTO,
     )
-    async def create_user(
+    def create_user(
         self,
         users_service: UserService,
         data: DTOData[UserCreate],
     ) -> User:
         """Create a new user."""
         obj = data.create_instance()
-        db_obj = await users_service.create(obj.__dict__)
+        db_obj = users_service.create(obj.__dict__)
         return users_service.to_dto(db_obj)
 
     @patch(
@@ -96,7 +96,7 @@ class AccountController(Controller):
         path=urls.ACCOUNT_UPDATE,
         dto=UserUpdateDTO,
     )
-    async def update_user(
+    def update_user(
         self,
         data: DTOData[UserUpdate],
         users_service: UserService,
@@ -107,7 +107,7 @@ class AccountController(Controller):
     ) -> User:
         """Create a new user."""
         obj = data.create_instance()
-        db_obj = await users_service.update(user_id, obj.__dict__)
+        db_obj = users_service.update(user_id, obj.__dict__)
         return users_service.to_dto(db_obj)
 
     @delete(
@@ -118,7 +118,7 @@ class AccountController(Controller):
         description="Removes a user and all associated data from the system.",
         return_dto=None,
     )
-    async def delete_user(
+    def delete_user(
         self,
         users_service: UserService,
         user_id: UUID = Parameter(
@@ -127,4 +127,4 @@ class AccountController(Controller):
         ),
     ) -> None:
         """Delete a user from the system."""
-        _ = await users_service.delete(user_id)
+        _ = users_service.delete(user_id)

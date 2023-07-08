@@ -7,11 +7,21 @@ packages = [{include = "spannermc"}]
 readme = "README.md"
 version = "0.1.0"
 
+[tool.poetry.scripts]
+spannermc = "litestar.__main__:run_cli"
+
+[tool.poetry.plugins."litestar.commands"]
+database = "spannermc.cli:database_management_app"
+users = "spannermc.cli:user_management_app"
+
 [tool.poetry.dependencies]
 aws-secretsmanager-caching = "*"
 google-api-core = "*"
 google-cloud-secret-manager = "*"
+google-re2 = {version = ">=1.0", platform = 'linux'}
 litestar = {git = "https://github.com/litestar-org/litestar.git", branch = "main", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog'], allow-prereleases = true}
+passlib = {version = "*", extras = ["argon2"]}
+pydantic = {version = ">=1.9.0", extras = ["dotenv", "email"]}
 python = ">=3.9,<3.12"
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}

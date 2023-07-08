@@ -1,0 +1,58 @@
+timeout: "1800s"
+steps:
+  - id: "apply migrations"
+    name: "gcr.io/google-appengine/exec-wrapper"
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        /buildstep/execute.sh \
+        -i us-central1-docker.pkg.dev/${_PROJECT_ID}/dma-artifacts/${_SERVICE_NAME}:latest \
+        -s ${_PROJECT_ID}:${_REGION}:${_CLOUDSQL_INSTANCE_NAME} \
+        -e PATH=/workspace/app/.venv/bin:$$PATH \
+        -e PYTHONPATH=/workspace/app/ \
+        -- manage upgrade-database
+  - id: "Deploying to CloudRun"
+    name: "gcr.io/cloud-builders/gcloud"
+    args: [
+        "beta",
+        "run",
+        "deploy",
+        "${_SERVICE_NAME}",
+        "--image",
+        "us-central1-docker.pkg.dev/${_PROJECT_ID}/dma-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "--region",
+        "${_REGION}",
+        "--service-account",
+        "${_SERVICE_ACCOUNT}",
+        "--timeout",
+        "60",
+        "--memory",
+        "${_MEMORY_SIZE}",
+        "--min-instances",
+        "1",
+        "--max-instances",
+        "${_MAX_INSTANCES}",
+        "--cpu",
+        "4",
+        "--port",
+        "8080",
+        "--concurrency",
+        "15",
+        "--project",
+        "${_PROJECT_ID}",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--execution-environment",
+        "gen2",
+        "--no-cpu-throttling",
+        # "--session-affinity",
+        "--ingress=internal-and-cloud-load-balancing",
+        # "--set-secrets",
+        # "/var/run/runtime-secrets=runtime-secrets:latest",
+        "--add-cloudsql-instances",
+        "${_PROJECT_ID}:${_REGION}:${_CLOUDSQL_INSTANCE_NAME}",
+        "--vpc-connector",
+        "projects/${_PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_NAME}",
+      ]

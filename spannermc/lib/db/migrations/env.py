@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 from logging.config import fileConfig
 from typing import TYPE_CHECKING
 
 from alembic import context
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from alembic.ddl.impl import DefaultImpl
+from sqlalchemy import engine_from_config, pool
 
 from spannermc.lib import settings
 from spannermc.lib.db import orm
@@ -20,6 +19,10 @@ if TYPE_CHECKING:
 config = context.config
 fileConfig(config.config_file_name)  # type: ignore
 target_metadata = orm.DatabaseModel.metadata
+
+
+class SpannerImpl(DefaultImpl):
+    __dialect__ = "spanner+spanner"
 
 
 def run_migrations_offline() -> None:
@@ -38,6 +41,9 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table_pk=False,
+        version_table=settings.db.MIGRATION_DDL_VERSION_TABLE,
+        user_module_prefix="sa.",
     )
 
     with context.begin_transaction():
@@ -50,6 +56,7 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         compare_type=True,
+        version_table_pk=False,
         version_table=settings.db.MIGRATION_DDL_VERSION_TABLE,
         user_module_prefix="sa.",
     )
@@ -58,7 +65,7 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_migrations_online() -> None:
+def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine and associate a
@@ -66,20 +73,20 @@ async def run_migrations_online() -> None:
     """
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = settings.db.URL
-    connectable = async_engine_from_config(
+    connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
         future=True,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        do_run_migrations(connection)
 
-    await connectable.dispose()
+    connectable.dispose()
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_migrations_online()

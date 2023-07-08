@@ -17,7 +17,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from spannermc.lib import constants, serialization, settings
+from spannermc.lib import constants, settings
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -52,8 +52,6 @@ def before_send_handler(message: Message, scope: Scope) -> None:
 engine = create_engine(
     settings.db.URL,
     future=True,
-    json_serializer=serialization.to_json,
-    json_deserializer=serialization.from_json,
     echo=settings.db.ECHO,
     echo_pool=True if settings.db.ECHO_POOL == "debug" else settings.db.ECHO_POOL,
     max_overflow=settings.db.POOL_MAX_OVERFLOW,
@@ -63,7 +61,6 @@ engine = create_engine(
     pool_pre_ping=settings.db.POOL_PRE_PING,
     pool_use_lifo=True,  # use lifo to reduce the number of idle connections
     poolclass=NullPool if settings.db.POOL_DISABLE else None,
-    connect_args=settings.db.CONNECT_ARGS,
 )
 session_factory: sessionmaker[Session] = sessionmaker(engine, expire_on_commit=False)
 """Database session factory.

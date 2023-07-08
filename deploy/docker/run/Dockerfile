@@ -58,10 +58,9 @@ RUN apt-get install -y --no-install-recommends build-essential curl \
 WORKDIR /workspace/app
 RUN curl -sSL https://install.python-poetry.org | python - \
     && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
-COPY pyproject.toml poetry.lock ICENSE Makefile \
+COPY pyproject.toml poetry.lock README.md LICENSE Makefile \
     ./
 RUN python -m venv --copies /workspace/app/.venv
-COPY scripts ./scripts/
 RUN /workspace/app/.venv/bin/pip install -U cython \
     && poetry install $POETRY_INSTALL_ARGS --no-root
 COPY spannermc ./spannermc/

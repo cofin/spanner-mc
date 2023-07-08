@@ -27,15 +27,17 @@ if TYPE_CHECKING:
     from litestar.response import Response
     from litestar.types import Scope
 
-__all__ = [
-    "ApplicationError",
-    "after_exception_hook_handler",
-    "exception_to_http_response",
-]
-
 
 class ApplicationError(Exception):
     """Base exception type for the lib's custom exception types."""
+
+
+class ApplicationClientError(ApplicationError):
+    """Base exception type for client errors."""
+
+
+class AuthorizationError(ApplicationClientError):
+    """A user tried to do something they shouldn't have."""
 
 
 class MissingDependencyError(ApplicationError, ValueError):

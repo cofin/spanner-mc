@@ -8,11 +8,11 @@ from litestar.di import Provide
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
 
-from app.domain import security, urls
-from app.domain.accounts.dependencies import provides_user_service
-from app.domain.accounts.dtos import AccountLogin, AccountLoginDTO, AccountRegister, AccountRegisterDTO, UserDTO
-from app.domain.accounts.guards import requires_active_user
-from app.lib import log
+from spannermc.domain import security, urls
+from spannermc.domain.accounts.dependencies import provides_user_service
+from spannermc.domain.accounts.dtos import AccountLogin, AccountLoginDTO, AccountRegister, AccountRegisterDTO, UserDTO
+from spannermc.domain.accounts.guards import requires_active_user
+from spannermc.lib import log
 
 __all__ = ["AccessController", "provides_user_service"]
 
@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from litestar.contrib.jwt import OAuth2Login
     from litestar.dto.factory import DTOData
 
-    from app.domain.accounts.models import User
-    from app.domain.accounts.services import UserService
+    from spannermc.domain.accounts.models import User
+    from spannermc.domain.accounts.services import UserService
 
 
 class AccessController(Controller):
@@ -44,14 +44,14 @@ class AccessController(Controller):
         dto=AccountLoginDTO,
         return_dto=None,
     )
-    async def login(
+    def login(
         self,
         users_service: UserService,
         data: DTOData[AccountLogin] = Body(title="OAuth2 Login", media_type=RequestEncodingType.URL_ENCODED),
     ) -> Response[OAuth2Login]:
         """Authenticate a user."""
         obj = data.create_instance()
-        user = await users_service.authenticate(obj.username, obj.password)
+        user = users_service.authenticate(obj.username, obj.password)
         return security.auth.login(user.email)
 
     @post(
@@ -63,10 +63,10 @@ class AccessController(Controller):
         description="Register a new account.",
         dto=AccountRegisterDTO,
     )
-    async def signup(self, users_service: UserService, data: DTOData[AccountRegister]) -> User:
+    def signup(self, users_service: UserService, data: DTOData[AccountRegister]) -> User:
         """User Signup."""
         obj = data.create_instance()
-        user = await users_service.create(obj.__dict__)
+        user = users_service.create(obj.__dict__)
         return users_service.to_dto(user)
 
     @get(
@@ -77,6 +77,6 @@ class AccessController(Controller):
         summary="User Profile",
         description="User profile information.",
     )
-    async def profile(self, current_user: User, users_service: UserService) -> User:
+    def profile(self, current_user: User, users_service: UserService) -> User:
         """User Profile."""
         return users_service.to_dto(current_user)
