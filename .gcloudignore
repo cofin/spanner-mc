@@ -1,0 +1,30 @@
+# Ignore everything specified in .gitignore
+#!include:.gitignore
+
+# Exclude locally installed dependencies
+venv/
+.venv/
+dist
+# Exclude git history and configuration.
+.git
+.gitignore
+node_modules
+__pycache__
+*.py[cod]
+*$py.class
+**/__pycache__
+.mypy_cache
+*.pyc
+.pytest_cache
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+.ruff_cache
+**/._
+.vscode
+.idea
+.angular
+site/
+.coverage
+*.tgz
+examples/

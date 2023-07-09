@@ -144,7 +144,7 @@ def promote_to_superuser(email: str) -> None:
 
 
 @database_management_app.command(
-    name="create-database",
+    name="create",
     help="Creates an empty postgres database and executes migrations",
 )
 def create_database() -> None:
@@ -153,7 +153,7 @@ def create_database() -> None:
 
 
 @database_management_app.command(
-    name="upgrade-database",
+    name="upgrade",
     help="Executes migrations to apply any outstanding database structures.",
 )
 def upgrade_database() -> None:
@@ -162,7 +162,7 @@ def upgrade_database() -> None:
 
 
 @database_management_app.command(
-    name="reset-database",
+    name="reset",
     help="Executes migrations to apply any outstanding database structures.",
 )
 @click.option(
@@ -182,7 +182,7 @@ def reset_database(no_prompt: bool) -> None:
 
 
 @database_management_app.command(
-    name="purge-database",
+    name="purge",
     help="Drops all tables.",
 )
 @click.option(
@@ -207,7 +207,7 @@ def purge_database(no_prompt: bool) -> None:
 
 
 @database_management_app.command(
-    name="show-current-database-revision",
+    name="show-current-revision",
     help="Shows the current revision for the database.",
 )
 def show_database_revision() -> None:

@@ -98,3 +98,10 @@ clean:       ## remove all build, testing, and static documentation files
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache
 	rm -fr site
+
+.PHONY: deploy
+deploy:												## Deploy to cloudrun
+	@echo "=> Building and pushing container to Docker Hub..."
+	source ./.gcloud.env && docker build -f deploy/docker/run/Dockerfile .  --tag "$$_CONTAINER_IMAGE" && docker push "$$_CONTAINER_IMAGE"
+	@echo "=> Deploying to Google CloudRun..."
+	source ./.gcloud.env && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION="$$_REGION",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",_CONTAINER_IMAGE="$$_CONTAINER_IMAGE"

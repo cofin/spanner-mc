@@ -7,20 +7,20 @@ steps:
       - -c
       - |
         /buildstep/execute.sh \
-        -i us-central1-docker.pkg.dev/${_PROJECT_ID}/dma-artifacts/${_SERVICE_NAME}:latest \
-        -s ${_PROJECT_ID}:${_REGION}:${_CLOUDSQL_INSTANCE_NAME} \
+        -i ${_CONTAINER_IMAGE} \
         -e PATH=/workspace/app/.venv/bin:$$PATH \
         -e PYTHONPATH=/workspace/app/ \
-        -- manage upgrade-database
+        -- database upgrade
   - id: "Deploying to CloudRun"
     name: "gcr.io/cloud-builders/gcloud"
-    args: [
+    args:
+      [
         "beta",
         "run",
         "deploy",
         "${_SERVICE_NAME}",
         "--image",
-        "us-central1-docker.pkg.dev/${_PROJECT_ID}/dma-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "${_CONTAINER_IMAGE}",
         "--region",
         "${_REGION}",
         "--service-account",
@@ -34,11 +34,9 @@ steps:
         "--max-instances",
         "${_MAX_INSTANCES}",
         "--cpu",
-        "4",
+        "1",
         "--port",
         "8080",
-        "--concurrency",
-        "15",
         "--project",
         "${_PROJECT_ID}",
         "--platform",
@@ -47,12 +45,4 @@ steps:
         "--execution-environment",
         "gen2",
         "--no-cpu-throttling",
-        # "--session-affinity",
-        "--ingress=internal-and-cloud-load-balancing",
-        # "--set-secrets",
-        # "/var/run/runtime-secrets=runtime-secrets:latest",
-        "--add-cloudsql-instances",
-        "${_PROJECT_ID}:${_REGION}:${_CLOUDSQL_INSTANCE_NAME}",
-        "--vpc-connector",
-        "projects/${_PROJECT_ID}/locations/${_REGION}/connectors/${_VPC_NAME}",
       ]
