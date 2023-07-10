@@ -6,9 +6,8 @@ from litestar import Controller, MediaType, get
 from litestar.response import Response
 from sqlalchemy import text
 
-from spannermc.domain import urls
 from spannermc.domain.system import schemas
-from spannermc.lib import log
+from spannermc.lib import constants, log
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -27,7 +26,7 @@ class SystemController(Controller):
     @get(
         operation_id="SystemHealth",
         name="system:health",
-        path=urls.SYSTEM_HEALTH,
+        path=constants.SYSTEM_HEALTH_URL,
         media_type=MediaType.JSON,
         cache=False,
         tags=["System"],
