@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from google.cloud import spanner
 from litestar.contrib.sqlalchemy.plugins.init.config import (
@@ -53,9 +53,9 @@ def before_send_handler(message: Message, scope: Scope) -> None:
             delete_litestar_scope_state(scope, SESSION_SCOPE_KEY)
 
 
-spanner_client_options = {"project": settings.cloud.GOOGLE_PROJECT}
+spanner_client_options: dict[str, Any] = {"project": settings.cloud.GOOGLE_PROJECT}
 if settings.db.API_ENDPOINT is not None:
-    spanner_client_options.update({"api_endpoint": settings.db.API_ENDPOINT})
+    spanner_client_options.update({"client_options": {"api_endpoint": settings.db.API_ENDPOINT}})
 
 spanner_client = spanner.Client(**spanner_client_options)
 engine = create_engine(

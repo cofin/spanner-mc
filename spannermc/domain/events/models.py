@@ -18,7 +18,7 @@ class Event(orm.TimestampedDatabaseModel):
     """Event Model."""
 
     __tablename__ = "event"  # type: ignore[assignment]
-    __table_args__ = ({"comment": "Events"},)
+    __table_args__ = {"comment": "Events"}
     message: Mapped[str]
     user_id: Mapped[UUID] = mapped_column(ForeignKey("user_account.id"))
 
