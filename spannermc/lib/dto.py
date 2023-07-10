@@ -28,8 +28,8 @@ def config(
         DTOConfig: Configured DTO class
     """
     default_kwargs = {"rename_strategy": "camel", "max_nested_depth": 2}
-    if exclude:
-        default_kwargs.update({"exclude": exclude})
+    exclude = {"sa_orm_sentinel"} if exclude is None else set(exclude).union({"sa_orm_sentinel"})
+    default_kwargs.update({"exclude": exclude})
     if rename_fields:
         default_kwargs.update({"rename_fields": rename_fields})
     if rename_strategy:

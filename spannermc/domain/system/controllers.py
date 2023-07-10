@@ -7,7 +7,7 @@ from litestar.response import Response
 from sqlalchemy import text
 
 from spannermc.domain import urls
-from spannermc.domain.system.dtos import SystemHealth
+from spannermc.domain.system import schemas
 from spannermc.lib import log
 
 if TYPE_CHECKING:
@@ -33,9 +33,9 @@ class SystemController(Controller):
         tags=["System"],
         summary="Health Check",
         description="Execute a health check against backend components.  Returns system information including database status.",
-        signature_namespace={"SystemHealth": SystemHealth},
+        signature_namespace={"SystemHealth": schemas.SystemHealth},
     )
-    def check_system_health(self, db_session: Session) -> Response[SystemHealth]:
+    def check_system_health(self, db_session: Session) -> Response[schemas.SystemHealth]:
         """Check database available and returns app config info."""
         try:
             db_session.execute(text("select 1"))
@@ -51,7 +51,7 @@ class SystemController(Controller):
             logger.warning("System Health Check Failed", database_status=db_status)
 
         return Response(
-            content=SystemHealth(database_status=db_status),  # type: ignore
+            content=schemas.SystemHealth(database_status=db_status),  # type: ignore
             status_code=200 if db_ping else 500,
             media_type=MediaType.JSON,
         )

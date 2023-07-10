@@ -18,7 +18,6 @@ def create_app() -> Litestar:
     """
 
     import uvloop
-    from asyncpg.pgproto import pgproto
     from litestar import Litestar
     from litestar.contrib.repository.exceptions import RepositoryError
     from litestar.di import Provide
@@ -32,7 +31,7 @@ def create_app() -> Litestar:
 
     log.get_logger()
 
-    application_dependencies = {constants.USER_DEPENDENCY_KEY: Provide(provide_user)}
+    application_dependencies = {constants.USER_DEPENDENCY_KEY: Provide(provide_user, sync_to_thread=False)}
     application_dependencies.update(dependencies.create_collection_dependencies())
 
     return Litestar(
@@ -48,7 +47,7 @@ def create_app() -> Litestar:
         middleware=[log.controller.middleware_factory],
         logging_config=log.config,
         openapi_config=domain.openapi.config,
-        type_encoders={pgproto.UUID: str, SecretStr: str},
+        type_encoders={SecretStr: str},
         route_handlers=[*domain.routes],
         plugins=[db.plugin],
         on_startup=[lambda: log.configure(log.default_processors)],  # type: ignore[arg-type]

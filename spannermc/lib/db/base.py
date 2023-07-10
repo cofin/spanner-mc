@@ -19,6 +19,9 @@ from sqlalchemy.pool import NullPool
 
 from spannermc.lib import constants, settings
 
+__all__ = ["before_send_handler", "session"]
+
+
 if TYPE_CHECKING:
     from collections.abc import Iterator
 

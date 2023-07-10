@@ -167,3 +167,4 @@ tsconfig.tsbuildinfo
 tmp/
 temp/
 
+service_account.json

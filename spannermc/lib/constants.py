@@ -13,3 +13,5 @@ DEFAULT_PAGINATION_LIMIT = 20
 USER_DEPENDENCY_KEY = "current_user"
 """The name of the key used for dependency injection of the database
 session."""
+SYSTEM_HEALTH_URL = "/api/health"
+"""API Health URL"""

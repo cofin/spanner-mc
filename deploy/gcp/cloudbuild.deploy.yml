@@ -1,16 +1,29 @@
 timeout: "1800s"
 steps:
-  - id: "apply migrations"
+  - id: "Build Container"
+    name: "gcr.io/kaniko-project/executor:debug"
+    args:
+      [
+        "--cache",
+        "--compressed-caching",
+        "--cleanup",
+        "--destination=${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "--build-arg",
+        "ENV_SECRETS=${_ENV_SECRETS}",
+        "--dockerfile",
+        "deploy/docker/run/Dockerfile",
+      ]
+  - id: "apply database migrations"
     name: "gcr.io/google-appengine/exec-wrapper"
     entrypoint: "bash"
     args:
       - -c
       - |
         /buildstep/execute.sh \
-        -i ${_CONTAINER_IMAGE} \
+        -i ${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA} \
         -e PATH=/workspace/app/.venv/bin:$$PATH \
         -e PYTHONPATH=/workspace/app/ \
-        -- database upgrade
+        -- spannermc database upgrade
   - id: "Deploying to CloudRun"
     name: "gcr.io/cloud-builders/gcloud"
     args:
@@ -20,23 +33,21 @@ steps:
         "deploy",
         "${_SERVICE_NAME}",
         "--image",
-        "${_CONTAINER_IMAGE}",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
         "--region",
-        "${_REGION}",
+        "${_REGION_NAME}",
         "--service-account",
         "${_SERVICE_ACCOUNT}",
         "--timeout",
         "60",
         "--memory",
         "${_MEMORY_SIZE}",
-        "--min-instances",
-        "1",
         "--max-instances",
         "${_MAX_INSTANCES}",
         "--cpu",
         "1",
         "--port",
-        "8080",
+        "8000",
         "--project",
         "${_PROJECT_ID}",
         "--platform",
@@ -44,5 +55,4 @@ steps:
         "--allow-unauthenticated",
         "--execution-environment",
         "gen2",
-        "--no-cpu-throttling",
       ]

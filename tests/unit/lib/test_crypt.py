@@ -33,8 +33,8 @@ async def test_get_password_hash() -> None:
     """Test that the encryption key is formatted correctly."""
     secret_str = SecretStr("This is a password!")
     secret_bytes = SecretBytes(b"This is a password too!")
-    secret_str_hash = await crypt.get_password_hash(secret_str)
-    secret_bytes_hash = await crypt.get_password_hash(secret_bytes)
+    secret_str_hash = crypt.get_password_hash(secret_str)
+    secret_bytes_hash = crypt.get_password_hash(secret_bytes)
 
     assert secret_str_hash.startswith("$argon2")
     assert secret_bytes_hash.startswith("$argon2")
@@ -47,7 +47,7 @@ async def test_get_password_hash() -> None:
 async def test_verify_password(valid_password: str, tested_password: str, expected_result: bool) -> None:
     """Test that the encryption key is formatted correctly."""
 
-    secret_str_hash = await crypt.get_password_hash(valid_password)
-    is_valid = await crypt.verify_password(tested_password, secret_str_hash)
+    secret_str_hash = crypt.get_password_hash(valid_password)
+    is_valid = crypt.verify_password(tested_password, secret_str_hash)
 
     assert is_valid == expected_result

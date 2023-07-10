@@ -28,3 +28,4 @@ site/
 .coverage
 *.tgz
 examples/
+service_account.json

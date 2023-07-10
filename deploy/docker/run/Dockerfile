@@ -77,10 +77,11 @@ ENV ENV_SECRETS="${ENV_SECRETS}"
 ## -------------------------- install application ----------------------------------- ##
 COPY --from=build-base --chown=65532:65532 /workspace/app/dist /tmp/
 WORKDIR /workspace/app
+RUN pip install -U cython setuptools wheel
 RUN pip install /tmp/*.whl
 USER nonroot
 STOPSIGNAL SIGINT
 EXPOSE 8000/tcp
 ENTRYPOINT ["tini","--" ]
-CMD [ "litestar","run"]
+CMD [ "litestar","run","--port","8000","--host","0.0.0.0"]
 VOLUME /workspace/app

@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from rich import get_console
 from rich.prompt import Confirm
 
-from spannermc.domain.accounts.dtos import UserCreate, UserUpdate
+from spannermc.domain.accounts.schemas import UserCreate, UserUpdate
 from spannermc.domain.accounts.services import UserService
 from spannermc.lib import db, log
 

@@ -59,7 +59,7 @@ class ServerSettings(BaseSettings):
         env_file = ".env"
         env_prefix = "SERVER_"
 
-    APP_LOC: str = "spannermc.app:create_app"
+    APP_LOC: str = "spannermc.asgi:create_app"
     """Path to app executable, or factory."""
     APP_LOC_IS_FACTORY: bool = True
     """Indicate if APP_LOC points to an executable or factory."""
@@ -71,7 +71,7 @@ class ServerSettings(BaseSettings):
     """Server port."""
     RELOAD: bool | None = None
     """Turn on hot reloading."""
-    RELOAD_DIR: str = f"{BASE_DIR}"
+    RELOAD_DIRS: list[str] = [f"{BASE_DIR}"]
     """Directories to watch for reloading."""
     HTTP_WORKERS: int | None = None
     """Number of HTTP Worker processes to be spawned by Uvicorn."""
@@ -86,7 +86,7 @@ class AppSettings(BaseSettings):
         case_sensitive = True
         env_file = ".env"
 
-    NAME: str = "Database Migration Assessment"
+    NAME: str = "Spanner Litestar"
     """Application name."""
     BUILD_NUMBER: str = version
     """Identifier for CI build."""
@@ -162,6 +162,7 @@ class OpenAPISettings(BaseSettings):
 
         env_prefix = "OPENAPI_"
         case_sensitive = True
+        env_file = ".env"
 
     TITLE: str | None
     VERSION: str = f"v{version}"
@@ -190,6 +191,7 @@ class DatabaseSettings(BaseSettings):
 
         env_prefix = "DB_"
         case_sensitive = True
+        env_file = ".env"
 
     ECHO: bool = False
     ECHO_POOL: bool | Literal["debug"] = False
@@ -199,10 +201,11 @@ class DatabaseSettings(BaseSettings):
     POOL_TIMEOUT: int = 30
     POOL_RECYCLE: int = 300
     POOL_PRE_PING: bool = True
-    URL: str = "spanner+spanner:///projects/emulator-test-project/instances/test-instance/databases/test-database"
+    URL: str
     MIGRATION_CONFIG: str = f"{BASE_DIR}/lib/db/alembic.ini"
     MIGRATION_PATH: str = f"{BASE_DIR}/lib/db/migrations"
     MIGRATION_DDL_VERSION_TABLE: str = "ddl_version"
+    API_ENDPOINT: str | None = None
 
 
 # noinspection PyUnresolvedReferences
@@ -213,6 +216,7 @@ class CloudSettings(BaseSettings):
         """Cloud Settings Config Metadata."""
 
         case_sensitive = True
+        env_file = ".env"
         fields = {
             "GOOGLE_CREDENTIALS": {
                 "env": "GOOGLE_APPLICATION_CREDENTIALS",
@@ -235,6 +239,7 @@ class LogSettings(BaseSettings):
 
         env_prefix = "LOG_"
         case_sensitive = True
+        env_file = ".env"
 
     # https://stackoverflow.com/a/1845097/6560549
     EXCLUDE_PATHS: str = r"\A(?!x)x"
@@ -306,7 +311,7 @@ def get_settings(
     active_cloud = os.environ.get("CLOUD", "local")
     secret_id = os.environ.get("ENV_SECRETS", None)
     env_file_exists = Path(f"{os.curdir}/.env").is_file()
-
+    os.environ["LITESTAR_PORT"] = "8000"
     local_service_account_exists = Path(f"{os.curdir}/service_account.json").is_file()
     if local_service_account_exists:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
@@ -315,9 +320,12 @@ def get_settings(
         _, project_id = google.auth.default()
         os.environ["GOOGLE_PROJECT_ID"] = project_id
     if not env_file_exists and secret_id:
+        logger.info("loading environment from Google Secrets")
         secret = gcp_secret_manager.get_secret(project_id, secret_id)
         load_dotenv(stream=io.StringIO(secret))
     elif active_cloud == "aws":
+        logger.info("loading environment from AWS Secrets")
+
         from spannermc.lib.cloud import aws as aws_secret_manager
 
         if not env_file_exists and secret_id:
@@ -328,7 +336,9 @@ def get_settings(
         app: AppSettings = AppSettings.parse_obj({})
         db: DatabaseSettings = DatabaseSettings.parse_obj({})
         openapi: OpenAPISettings = OpenAPISettings.parse_obj({})
-        server: ServerSettings = ServerSettings.parse_obj({})
+        server: ServerSettings = ServerSettings.parse_obj(
+            {"HOST": "0.0.0.0", "RELOAD_DIRS": [str(BASE_DIR)]},  # noqa: S104
+        )
         cloud: CloudSettings = CloudSettings.parse_obj({})
         log: LogSettings = LogSettings.parse_obj({})
     except ValidationError as e:

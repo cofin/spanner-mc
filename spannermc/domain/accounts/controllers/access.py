@@ -9,8 +9,8 @@ from litestar.enums import RequestEncodingType
 from litestar.params import Body
 
 from spannermc.domain import security, urls
+from spannermc.domain.accounts import schemas
 from spannermc.domain.accounts.dependencies import provides_user_service
-from spannermc.domain.accounts.dtos import AccountLogin, AccountLoginDTO, AccountRegister, AccountRegisterDTO, UserDTO
 from spannermc.domain.accounts.guards import requires_active_user
 from spannermc.lib import log
 
@@ -21,7 +21,6 @@ logger = log.get_logger()
 
 if TYPE_CHECKING:
     from litestar.contrib.jwt import OAuth2Login
-    from litestar.dto.factory import DTOData
 
     from spannermc.domain.accounts.models import User
     from spannermc.domain.accounts.services import UserService
@@ -32,7 +31,6 @@ class AccessController(Controller):
 
     tags = ["Access"]
     dependencies = {"users_service": Provide(provides_user_service)}
-    return_dto = UserDTO
 
     @post(
         operation_id="AccountLogin",
@@ -41,17 +39,14 @@ class AccessController(Controller):
         media_type=MediaType.JSON,
         cache=False,
         summary="Login",
-        dto=AccountLoginDTO,
-        return_dto=None,
     )
     def login(
         self,
         users_service: UserService,
-        data: DTOData[AccountLogin] = Body(title="OAuth2 Login", media_type=RequestEncodingType.URL_ENCODED),
+        data: schemas.UserLogin = Body(title="OAuth2 Login", media_type=RequestEncodingType.URL_ENCODED),
     ) -> Response[OAuth2Login]:
         """Authenticate a user."""
-        obj = data.create_instance()
-        user = users_service.authenticate(obj.username, obj.password)
+        user = users_service.authenticate(data.username, data.password)
         return security.auth.login(user.email)
 
     @post(
@@ -61,13 +56,12 @@ class AccessController(Controller):
         cache=False,
         summary="Create User",
         description="Register a new account.",
-        dto=AccountRegisterDTO,
     )
-    def signup(self, users_service: UserService, data: DTOData[AccountRegister]) -> User:
+    def signup(self, users_service: UserService, data: schemas.UserSignup) -> schemas.User:
         """User Signup."""
-        obj = data.create_instance()
-        user = users_service.create(obj.__dict__)
-        return users_service.to_dto(user)
+        _data = data.dict(exclude_unset=True, by_alias=False, exclude_none=True)
+        user = users_service.create(_data)
+        return users_service.to_schema(schemas.User, user)
 
     @get(
         operation_id="AccountProfile",
@@ -77,6 +71,6 @@ class AccessController(Controller):
         summary="User Profile",
         description="User profile information.",
     )
-    def profile(self, current_user: User, users_service: UserService) -> User:
+    def profile(self, current_user: User, users_service: UserService) -> schemas.User:
         """User Profile."""
-        return users_service.to_dto(current_user)
+        return users_service.to_schema(schemas.User, current_user)

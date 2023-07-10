@@ -43,12 +43,12 @@ migrations:       ## Generate database migrations
 .PHONY: migrate
 migrate:          ## Generate database migrations
 	@echo "ATTENTION: Will apply all database migrations."
-	@env PYTHONPATH=. $(ENV_PREFIX)spannermc database upgrade-database
+	@env PYTHONPATH=. $(ENV_PREFIX)spannermc database upgrade
 
 .PHONY: squash-migrations
 squash-migrations:       ## Generate database migrations
 	@echo "ATTENTION: This operation will wipe all migrations and recreate from an empty state."
-	@env PYTHONPATH=. $(ENV_PREFIX)spannermc database purge-database --no-prompt
+	@env PYTHONPATH=. $(ENV_PREFIX)spannermc database purge --no-prompt
 	rm -Rf spannermc/lib/db/migrations/versions/*.py
 	@while [ -z "$$MIGRATION_MESSAGE" ]; do read -r -p "Initial migration message: " MIGRATION_MESSAGE; done ;
 	@env PYTHONPATH=. $(ENV_PREFIX)alembic -c spannermc/lib/db/alembic.ini revision --autogenerate -m "$${MIGRATION_MESSAGE}"
@@ -58,6 +58,8 @@ squash-migrations:       ## Generate database migrations
 build:
 	@echo "=> Building package..."
 	if [ "$(USING_POETRY)" ]; then poetry build; fi
+	@echo "=> Building and pushing container to Docker Hub..."
+	source ./.gcloud.env && docker build -f deploy/docker/run/Dockerfile .  --tag "$$_CONTAINER_IMAGE" && docker push "$$_CONTAINER_IMAGE"
 
 .PHONY: test
 test:
@@ -101,7 +103,6 @@ clean:       ## remove all build, testing, and static documentation files
 
 .PHONY: deploy
 deploy:												## Deploy to cloudrun
-	@echo "=> Building and pushing container to Docker Hub..."
-	source ./.gcloud.env && docker build -f deploy/docker/run/Dockerfile .  --tag "$$_CONTAINER_IMAGE" && docker push "$$_CONTAINER_IMAGE"
+
 	@echo "=> Deploying to Google CloudRun..."
-	source ./.gcloud.env && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION="$$_REGION",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",_CONTAINER_IMAGE="$$_CONTAINER_IMAGE"
+	source ./.gcloud.env && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION_NAME="$$_REGION_NAME",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_ENV_SECRETS="$$_ENV_SECRETS",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",BRANCH_NAME="main",SHORT_SHA="$$(git rev-parse --short HEAD)"

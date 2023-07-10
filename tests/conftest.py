@@ -12,13 +12,12 @@ from structlog.testing import CapturingLogger
 
 if TYPE_CHECKING:
     from collections import abc
-    from collections.abc import Generator, Iterator
+    from collections.abc import Generator
 
     from litestar import Litestar
     from pytest import FixtureRequest, MonkeyPatch
 
     from spannermc.domain.accounts.models import User
-    from spannermc.domain.teams.models import Team
 
 
 @pytest.fixture(scope="session")
@@ -116,21 +115,6 @@ def fx_raw_users() -> list[User | dict[str, Any]]:
     ]
 
 
-@pytest.fixture(name="raw_teams")
-def fx_raw_teams() -> list[Team | dict[str, Any]]:
-    """Unstructured team representations."""
-
-    return [
-        {
-            "id": "97108ac1-ffcb-411d-8b1e-d9183399f63b",
-            "slug": "test-assessment-team",
-            "name": "Test Assessment Team",
-            "description": "This is a description for a migration team.",
-            "owner_id": "6ef29f3c-3560-4d15-ba6b-a2e5c721e4d3",
-        }
-    ]
-
-
 @pytest.fixture()
 def _patch_sqlalchemy_plugin(is_unit_test: bool, monkeypatch: MonkeyPatch) -> None:
     if is_unit_test:
@@ -141,21 +125,6 @@ def _patch_sqlalchemy_plugin(is_unit_test: bool, monkeypatch: MonkeyPatch) -> No
             "on_shutdown",
             MagicMock(),
         )
-
-
-@pytest.fixture()
-def _patch_worker(
-    is_unit_test: bool, monkeypatch: MonkeyPatch, event_loop: Iterator[asyncio.AbstractEventLoop]
-) -> None:
-    """We don't want the worker to start for unit tests."""
-    if is_unit_test:
-        from spannermc.lib import worker
-
-        monkeypatch.setattr(worker.Worker, "on_app_startup", MagicMock())
-        monkeypatch.setattr(worker.Worker, "stop", MagicMock())
-    from spannermc.lib.worker import commands
-
-    monkeypatch.setattr(commands, "_create_event_loop", event_loop)
 
 
 @pytest.fixture(name="cap_logger")
@@ -175,5 +144,4 @@ def fx_cap_logger(monkeypatch: MonkeyPatch) -> CapturingLogger:
     # noinspection PyProtectedMember
     logger._processors = spannermc.lib.log.default_processors[:-1]
     monkeypatch.setattr(spannermc.lib.log.controller, "LOGGER", logger)
-    monkeypatch.setattr(spannermc.lib.log.worker, "LOGGER", logger)
     return logger._logger

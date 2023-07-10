@@ -8,8 +8,8 @@ from litestar.di import Provide
 from litestar.params import Dependency, Parameter
 
 from spannermc.domain import urls
+from spannermc.domain.accounts import schemas
 from spannermc.domain.accounts.dependencies import provides_user_service
-from spannermc.domain.accounts.dtos import UserCreate, UserCreateDTO, UserDTO, UserUpdate, UserUpdateDTO
 from spannermc.domain.accounts.guards import requires_superuser
 from spannermc.lib import log
 
@@ -20,10 +20,8 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from litestar.contrib.repository.filters import FilterTypes
-    from litestar.dto.factory import DTOData
     from litestar.pagination import OffsetPagination
 
-    from spannermc.domain.accounts.models import User
     from spannermc.domain.accounts.services import UserService
 
 
@@ -36,7 +34,6 @@ class AccountController(Controller):
     tags = ["User Accounts"]
     guards = [requires_superuser]
     dependencies = {"users_service": Provide(provides_user_service)}
-    return_dto = UserDTO
 
     @get(
         operation_id="ListUsers",
@@ -48,10 +45,10 @@ class AccountController(Controller):
     )
     def list_users(
         self, users_service: UserService, filters: list[FilterTypes] = Dependency(skip_validation=True)
-    ) -> OffsetPagination[User]:
+    ) -> OffsetPagination[schemas.User]:
         """List users."""
         results, total = users_service.list_and_count(*filters)
-        return users_service.to_dto(results, total, *filters)
+        return users_service.to_schema(schemas.User, results, total, *filters)
 
     @get(
         operation_id="GetUser",
@@ -66,10 +63,10 @@ class AccountController(Controller):
             title="User ID",
             description="The user to retrieve.",
         ),
-    ) -> User:
+    ) -> schemas.User:
         """Get a user."""
         db_obj = users_service.get(user_id)
-        return users_service.to_dto(db_obj)
+        return users_service.to_schema(schemas.User, db_obj)
 
     @post(
         operation_id="CreateUser",
@@ -78,37 +75,34 @@ class AccountController(Controller):
         cache_control=None,
         description="A user who can login and use the system.",
         path=urls.ACCOUNT_CREATE,
-        dto=UserCreateDTO,
     )
     def create_user(
         self,
         users_service: UserService,
-        data: DTOData[UserCreate],
-    ) -> User:
+        data: schemas.UserCreate,
+    ) -> schemas.User:
         """Create a new user."""
-        obj = data.create_instance()
-        db_obj = users_service.create(obj.__dict__)
-        return users_service.to_dto(db_obj)
+        obj = data.dict(exclude_unset=True, by_alias=False, exclude_none=True)
+        db_obj = users_service.create(obj)
+        return users_service.to_schema(schemas.User, db_obj)
 
     @patch(
         operation_id="UpdateUser",
         name="users:update",
         path=urls.ACCOUNT_UPDATE,
-        dto=UserUpdateDTO,
     )
     def update_user(
         self,
-        data: DTOData[UserUpdate],
+        data: schemas.UserUpdate,
         users_service: UserService,
         user_id: UUID = Parameter(
             title="User ID",
             description="The user to update.",
         ),
-    ) -> User:
+    ) -> schemas.User:
         """Create a new user."""
-        obj = data.create_instance()
-        db_obj = users_service.update(user_id, obj.__dict__)
-        return users_service.to_dto(db_obj)
+        db_obj = users_service.update(user_id, data.dict(exclude_unset=True, by_alias=False, exclude_none=True))
+        return users_service.to_schema(schemas.User, db_obj)
 
     @delete(
         operation_id="DeleteUser",
@@ -116,7 +110,6 @@ class AccountController(Controller):
         path=urls.ACCOUNT_DELETE,
         summary="Remove User",
         description="Removes a user and all associated data from the system.",
-        return_dto=None,
     )
     def delete_user(
         self,

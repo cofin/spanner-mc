@@ -73,7 +73,7 @@ def test_drop_health_log_no_drop_event_if_not_success_status() -> None:
 
 def test_middleware_factory_added_to_app(app: Litestar) -> None:
     """Ensures the plugin adds the middleware to clear the context."""
-    assert log.controller.middleware_factory in spannermc.middleware
+    assert log.controller.middleware_factory in app.middleware
 
 
 async def test_middleware_calls_structlog_contextvars_clear_contextvars(
@@ -346,7 +346,7 @@ async def test_exception_in_before_send_handler(
         "log_response",
         AsyncMock(side_effect=RuntimeError),
     )
-    client.spannermc.register(test_handler)
+    client.app.register(test_handler)
     resp = client.get("/a/b/a/d")
     assert resp.text == "Hello"
     assert len(cap_logger.calls) == 1
@@ -377,7 +377,7 @@ async def test_exception_in_before_send_handler_read_empty_body(
     request: Request = Request(http_scope, receive=empty_receive)
     await before_send_handler.extract_request_data(request)
 
-    client.spannermc.register(test_handler)
+    client.app.register(test_handler)
     resp = client.post("/1/2/3/4")
     assert resp.text == "Hello"
     assert len(cap_logger.calls) == 1
@@ -402,7 +402,7 @@ async def test_log_request_with_invalid_json_payload(client: TestClient[Litestar
     async def test_handler(data: dict[str, Any]) -> dict[str, Any]:
         return data
 
-    client.spannermc.register(test_handler)
+    client.app.register(test_handler)
     resp = client.post("/", content=b'{"a": "b",}', headers={"content-type": "application/json"})
     assert resp.status_code == HTTP_400_BAD_REQUEST
 

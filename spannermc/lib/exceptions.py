@@ -19,6 +19,16 @@ from litestar.middleware.exceptions.middleware import create_exception_response
 from litestar.status_codes import HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
 from structlog.contextvars import bind_contextvars
 
+__all__ = [
+    "ApplicationClientError",
+    "ApplicationError",
+    "AuthorizationError",
+    "MissingDependencyError",
+    "after_exception_hook_handler",
+    "exception_to_http_response",
+]
+
+
 if TYPE_CHECKING:
     from typing import Any
 

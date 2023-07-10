@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 from litestar.contrib.repository.handlers import on_app_init as _on_app_init
 from litestar.contrib.sqlalchemy.repository import SQLAlchemySyncRepository
 
+__all__ = ["on_app_init"]
+
+
 if TYPE_CHECKING:
     from litestar.config.app import AppConfig
 

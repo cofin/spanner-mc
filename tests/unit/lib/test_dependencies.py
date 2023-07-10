@@ -33,7 +33,7 @@ class MessageTest:
 async def test_provide_user_dependency() -> None:
     user = User()
     request = RequestFactory(app=Litestar(route_handlers=[])).get("/", user=user)
-    assert await security.provide_user(request) is user
+    assert security.provide_user(request) is user
 
 
 def test_id_filter() -> None:
