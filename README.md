@@ -86,6 +86,9 @@ gcloud beta iam service-accounts add-iam-policy-binding ${CLOUDRUN_SERVICE_ACCOU
 
 # deploy the service
 gcloud beta run services add-iam-policy-binding --region=us-east4 --member serviceAccount:${CLOUDBUILD_SERVICE_ACCOUNT} --role=roles/run.invoker spannermc
+gcloud run services add-iam-policy-binding spannermc \
+    --member="allUsers" \
+    --role="roles/run.invoker"
 gcloud run deploy spannermc \
     --image=$REGION_NAME-docker.pkg.dev/$PROJECT_ID/spannermc-artifacts/spanner-mc@sha256:b77df72393c12b9f59c7e1de11be18635601d1cb3f5917ada09d952ac6c4c133 \
     --allow-unauthenticated \
