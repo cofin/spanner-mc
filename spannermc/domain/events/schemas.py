@@ -11,7 +11,7 @@ class Event(CamelizedBaseSchema):
     """Event properties to use for a response."""
 
     id: UUID
-    name: str
+    message: str
     user_id: UUID
 
 
@@ -19,14 +19,14 @@ class Event(CamelizedBaseSchema):
 class EventCreate(CamelizedBaseSchema):
     """Event Create Properties."""
 
-    name: str
+    message: str
 
 
 # Properties to receive via API on update
 class EventUpdate(CamelizedBaseSchema):
     """Properties to receive for user updates."""
 
-    name: str
+    message: str
 
 
 Event.update_forward_refs()
