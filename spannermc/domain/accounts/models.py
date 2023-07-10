@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TCH003
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Index, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from spannermc.lib import dto
 from spannermc.lib.db import orm
+
+if TYPE_CHECKING:
+    from spannermc.domain.events.models import Event
 
 __all__ = ["User"]
 
@@ -26,3 +30,13 @@ class User(orm.TimestampedDatabaseModel):
     is_superuser: Mapped[bool] = mapped_column(default=False)
     is_verified: Mapped[bool] = mapped_column(default=False)
     verified_at: Mapped[datetime | None] = mapped_column(info=dto.dto_field("read-only"))
+    # -----------
+    # ORM Relationships
+    # ------------
+    events: Mapped[list[Event]] = relationship(
+        back_populates="user",
+        lazy="selectin",
+        uselist=True,
+        cascade="all, delete",
+        viewonly=True,
+    )

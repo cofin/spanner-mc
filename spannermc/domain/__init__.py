@@ -13,7 +13,7 @@ from litestar.types import TypeEncodersMap
 from spannermc.domain.accounts.models import User
 from spannermc.lib.service.generic import Service
 
-from . import accounts, openapi, security, system, urls
+from . import accounts, events, openapi, security, system, urls
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 routes: list[ControllerRouterHandler] = [
     accounts.controllers.AccessController,
     accounts.controllers.AccountController,
+    events.controllers.EventController,
     system.controllers.SystemController,
 ]
 

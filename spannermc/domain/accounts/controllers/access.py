@@ -12,6 +12,8 @@ from spannermc.domain import security, urls
 from spannermc.domain.accounts import schemas
 from spannermc.domain.accounts.dependencies import provides_user_service
 from spannermc.domain.accounts.guards import requires_active_user
+from spannermc.domain.accounts.models import User
+from spannermc.domain.accounts.services import UserService
 from spannermc.lib import log
 
 __all__ = ["AccessController", "provides_user_service"]
@@ -22,15 +24,13 @@ logger = log.get_logger()
 if TYPE_CHECKING:
     from litestar.contrib.jwt import OAuth2Login
 
-    from spannermc.domain.accounts.models import User
-    from spannermc.domain.accounts.services import UserService
-
 
 class AccessController(Controller):
     """User login and registration."""
 
     tags = ["Access"]
     dependencies = {"users_service": Provide(provides_user_service)}
+    signature_namespace = {"UserService": UserService, "User": User}
 
     @post(
         operation_id="AccountLogin",

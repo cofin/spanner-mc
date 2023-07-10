@@ -11,6 +11,7 @@ from spannermc.domain import urls
 from spannermc.domain.accounts import schemas
 from spannermc.domain.accounts.dependencies import provides_user_service
 from spannermc.domain.accounts.guards import requires_superuser
+from spannermc.domain.accounts.services import UserService
 from spannermc.lib import log
 
 __all__ = ["AccountController"]
@@ -22,8 +23,6 @@ if TYPE_CHECKING:
     from litestar.contrib.repository.filters import FilterTypes
     from litestar.pagination import OffsetPagination
 
-    from spannermc.domain.accounts.services import UserService
-
 
 logger = log.get_logger()
 
@@ -34,6 +33,7 @@ class AccountController(Controller):
     tags = ["User Accounts"]
     guards = [requires_superuser]
     dependencies = {"users_service": Provide(provides_user_service)}
+    signature_namespace = {"UserService": UserService}
 
     @get(
         operation_id="ListUsers",
