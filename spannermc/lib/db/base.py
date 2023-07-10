@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, cast
 
+from google.cloud import spanner
 from litestar.contrib.sqlalchemy.plugins.init.config import (
     SQLAlchemySyncConfig,
 )
@@ -52,6 +53,11 @@ def before_send_handler(message: Message, scope: Scope) -> None:
             delete_litestar_scope_state(scope, SESSION_SCOPE_KEY)
 
 
+spanner_client_options = {"project": settings.cloud.GOOGLE_PROJECT}
+if settings.db.API_ENDPOINT is not None:
+    spanner_client_options.update({"api_endpoint": settings.db.API_ENDPOINT})
+
+spanner_client = spanner.Client(**spanner_client_options)
 engine = create_engine(
     settings.db.URL,
     future=True,
@@ -64,6 +70,7 @@ engine = create_engine(
     pool_pre_ping=settings.db.POOL_PRE_PING,
     pool_use_lifo=True,  # use lifo to reduce the number of idle connections
     poolclass=NullPool if settings.db.POOL_DISABLE else None,
+    connect_args={"client": spanner_client},
 )
 session_factory: sessionmaker[Session] = sessionmaker(engine, expire_on_commit=False)
 """Database session factory.
