@@ -1,7 +1,6 @@
 INDEX = "/"
 SITE_ROOT = "/{path:str}"
 OPENAPI_SCHEMA = "/schema"
-SYSTEM_HEALTH = "/health"
 
 
 ACCOUNT_LOGIN = "/api/access/login"

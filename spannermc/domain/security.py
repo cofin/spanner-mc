@@ -9,7 +9,7 @@ from sqlalchemy.orm import noload
 from spannermc.domain import urls
 from spannermc.domain.accounts.models import User
 from spannermc.domain.accounts.services import UserService
-from spannermc.lib import settings
+from spannermc.lib import constants, settings
 
 if TYPE_CHECKING:
     from litestar.connection import ASGIConnection, Request
@@ -58,7 +58,7 @@ auth = OAuth2PasswordBearerAuth[User](
     token_url=urls.ACCOUNT_LOGIN,
     exclude=[
         urls.OPENAPI_SCHEMA,
-        urls.SYSTEM_HEALTH,
+        constants.SYSTEM_HEALTH_URL,
         urls.ACCOUNT_LOGIN,
         urls.ACCOUNT_REGISTER,
     ],
