@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID  # noqa: TCH003
 
 from sqlalchemy import ForeignKey
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from spannermc.lib.db import orm
@@ -21,7 +22,8 @@ class Event(orm.TimestampedDatabaseModel):
     __table_args__ = {"comment": "Events"}
     message: Mapped[str]
     user_id: Mapped[UUID] = mapped_column(ForeignKey("user_account.id"))
-
+    user_name: AssociationProxy[str] = association_proxy("user", "name")
+    user_email: AssociationProxy[str] = association_proxy("user", "email")
     # -----------
     # ORM Relationships
     # ------------
