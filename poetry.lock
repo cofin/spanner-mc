@@ -746,13 +746,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-auth"
-version = "2.21.0"
+version = "2.22.0"
 description = "Google Authentication Library"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "google-auth-2.21.0.tar.gz", hash = "sha256:b28e8048e57727e7cf0e5bd8e7276b212aef476654a09511354aa82753b45c66"},
-    {file = "google_auth-2.21.0-py2.py3-none-any.whl", hash = "sha256:da3f18d074fa0f5a7061d99b9af8cee3aa6189c987af7c1b07d94566b6b11268"},
+    {file = "google-auth-2.22.0.tar.gz", hash = "sha256:164cba9af4e6e4e40c3a4f90a1a6c12ee56f14c0b4868d1ca91b32826ab334ce"},
+    {file = "google_auth-2.22.0-py2.py3-none-any.whl", hash = "sha256:d61d1b40897407b574da67da1a833bdc10d5a11642566e506565d1b1a46ba873"},
 ]
 
 [package.dependencies]
@@ -786,6 +786,25 @@ google-auth = ">=1.25.0,<3.0dev"
 
 [package.extras]
 grpc = ["grpcio (>=1.38.0,<2.0dev)"]
+
+[[package]]
+name = "google-cloud-monitoring"
+version = "2.15.1"
+description = "Stackdriver Monitoring API client library"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-cloud-monitoring-2.15.1.tar.gz", hash = "sha256:086a845a34a6e105ab8a3a4809392ea6367a65b28b7561c26101534a8705ed37"},
+    {file = "google_cloud_monitoring-2.15.1-py2.py3-none-any.whl", hash = "sha256:4394e5e031f30d622a24739678ec48a45400ead94af9a6032cbff7f66194dc12"},
+]
+
+[package.dependencies]
+google-api-core = {version = ">=1.33.2,<2.0.dev0 || >=2.8.dev0,<3.0.0dev", extras = ["grpc"]}
+proto-plus = {version = ">=1.22.2,<2.0.0dev", markers = "python_version >= \"3.11\""}
+protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
+
+[package.extras]
+pandas = ["pandas (>=0.17.1)"]
 
 [[package]]
 name = "google-cloud-secret-manager"
@@ -1756,6 +1775,23 @@ files = [
 deprecated = ">=1.2.6"
 importlib-metadata = ">=6.0.0,<6.1.0"
 setuptools = ">=16.0"
+
+[[package]]
+name = "opentelemetry-exporter-gcp-monitoring"
+version = "1.5.0a0"
+description = "Google Cloud Monitoring exporter for OpenTelemetry"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "opentelemetry-exporter-gcp-monitoring-1.5.0a0.tar.gz", hash = "sha256:33fa3563a05ae2f5b7e5bf05e68333d4442ead290eb29f5f50213b6d91cd3da6"},
+    {file = "opentelemetry_exporter_gcp_monitoring-1.5.0a0-py3-none-any.whl", hash = "sha256:f7c0730f5ffef5c041e4b177f68cc421e5c774c7b5658aea9c9fa93397d06a25"},
+]
+
+[package.dependencies]
+google-cloud-monitoring = ">=2.0,<3.0"
+opentelemetry-api = ">=1.0,<2.0"
+opentelemetry-resourcedetector-gcp = ">=1.5.0dev0,<2.dev0"
+opentelemetry-sdk = ">=1.0,<2.0"
 
 [[package]]
 name = "opentelemetry-exporter-gcp-trace"
@@ -3023,4 +3059,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "61db30a49d310836ca1b829981165285923b79fdef4ea8f3a85ba6f23b36180f"
+content-hash = "1cc12dbee7683122d8a19ddf9de392dd0ca9c43acbbcae3bb3ecf1ceb3d9e826"

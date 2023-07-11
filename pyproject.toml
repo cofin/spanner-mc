@@ -15,21 +15,21 @@ database = "spannermc.cli:database_management_app"
 users = "spannermc.cli:user_management_app"
 
 [tool.poetry.dependencies]
-aws-secretsmanager-caching = "*"
 google-api-core = "*"
 google-cloud-secret-manager = "*"
 google-re2 = {version = ">=1.0", platform = 'linux'}
 litestar = {git = "https://github.com/cofin/litestar.git", branch = "spanner-fixes", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry'], allow-prereleases = true}
+opentelemetry-api = "^1.18.0"
+opentelemetry-exporter-gcp-monitoring = {version = ">=1.4.9", allow-prereleases = true}
+opentelemetry-exporter-gcp-trace = {version = ">=1.5.0", allow-prereleases = true}
+opentelemetry-instrumentation = "^0.39b0"
+opentelemetry-sdk = "^1.18.0"
 passlib = {version = "*", extras = ["argon2"]}
 pydantic = {version = ">=1.9.0,<2.0.0", extras = ["dotenv", "email"]}
 python = ">=3.11,<3.12"
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
 uvloop = "*"
-opentelemetry-api = "^1.18.0"
-opentelemetry-sdk = "^1.18.0"
-opentelemetry-instrumentation = "^0.39b0"
-opentelemetry-exporter-gcp-trace = "^1.5.0"
 
 [tool.poetry.group.dev.dependencies]
 aws-secretsmanager-caching = "*"
