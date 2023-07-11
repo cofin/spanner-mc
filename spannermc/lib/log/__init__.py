@@ -101,6 +101,11 @@ config = LoggingConfig(
             "level": settings.log.SQLALCHEMY_LEVEL,
             "handlers": ["queue_listener"],
         },
+        "opentelemetry.sdk.metrics._internal": {
+            "propagate": False,
+            "level": 30,
+            "handlers": ["queue_listener"],
+        },
     },
 )
 """Pre-configured log config for application deps.

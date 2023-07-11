@@ -21,6 +21,7 @@ from litestar.status_codes import (
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from litestar.utils.scope import get_litestar_scope_state
+from opentelemetry import trace
 
 from spannermc.lib import constants, settings
 
@@ -44,6 +45,24 @@ LOGGER = structlog.getLogger()
 HTTP_RESPONSE_START: Literal["http.response.start"] = "http.response.start"
 HTTP_RESPONSE_BODY: Literal["http.response.body"] = "http.response.body"
 REQUEST_BODY_FIELD: Literal["body"] = "body"
+
+
+def add_open_telemetry_spans(_, __, event_dict):
+    span = trace.get_current_span()
+    if not span.is_recording():
+        event_dict["span"] = None
+        return event_dict
+
+    ctx = span.get_span_context()
+    parent = getattr(span, "parent", None)
+
+    event_dict["span"] = {
+        "span_id": hex(ctx.span_id),
+        "trace_id": hex(ctx.trace_id),
+        "parent_span_id": None if not parent else hex(parent.span_id),
+    }
+
+    return event_dict
 
 
 def add_google_cloud_attributes(_: WrappedLogger, __: str, event_dict: EventDict) -> EventDict:
