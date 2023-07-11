@@ -41,7 +41,7 @@ class AccountController(Controller):
         summary="List Users",
         description="Retrieve the users.",
         path=urls.ACCOUNT_LIST,
-        cache=60,
+        sync_to_thread=False,
     )
     def list_users(
         self, users_service: UserService, filters: list[FilterTypes] = Dependency(skip_validation=True)
@@ -55,6 +55,7 @@ class AccountController(Controller):
         name="users:get",
         path=urls.ACCOUNT_DETAIL,
         summary="Retrieve the details of a user.",
+        sync_to_thread=False,
     )
     def get_user(
         self,
@@ -75,6 +76,7 @@ class AccountController(Controller):
         cache_control=None,
         description="A user who can login and use the system.",
         path=urls.ACCOUNT_CREATE,
+        sync_to_thread=False,
     )
     def create_user(
         self,
@@ -86,11 +88,7 @@ class AccountController(Controller):
         db_obj = users_service.create(obj)
         return users_service.to_schema(schemas.User, db_obj)
 
-    @patch(
-        operation_id="UpdateUser",
-        name="users:update",
-        path=urls.ACCOUNT_UPDATE,
-    )
+    @patch(operation_id="UpdateUser", name="users:update", path=urls.ACCOUNT_UPDATE, sync_to_thread=False)
     def update_user(
         self,
         data: schemas.UserUpdate,
@@ -110,6 +108,7 @@ class AccountController(Controller):
         path=urls.ACCOUNT_DELETE,
         summary="Remove User",
         description="Removes a user and all associated data from the system.",
+        sync_to_thread=False,
     )
     def delete_user(
         self,

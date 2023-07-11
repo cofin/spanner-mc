@@ -41,7 +41,7 @@ class EventController(Controller):
         summary="List Events",
         description="Retrieve the events.",
         path=urls.EVENT_LIST,
-        cache=60,
+        sync_to_thread=False,
     )
     def list_events(
         self, events_service: EventService, filters: list[FilterTypes] = Dependency(skip_validation=True)
@@ -55,6 +55,7 @@ class EventController(Controller):
         name="events:get",
         path=urls.EVENT_DETAIL,
         summary="Retrieve the details of a event.",
+        sync_to_thread=False,
     )
     def get_event(
         self,
@@ -75,6 +76,7 @@ class EventController(Controller):
         cache_control=None,
         description="A event.",
         path=urls.EVENT_CREATE,
+        sync_to_thread=False,
     )
     def create_event(
         self,
@@ -88,7 +90,13 @@ class EventController(Controller):
         db_obj = events_service.create(obj)
         return events_service.to_schema(schemas.Event, db_obj)
 
-    @patch(operation_id="UpdateEvent", name="events:update", path=urls.EVENT_UPDATE, guards=[requires_event_ownership])
+    @patch(
+        operation_id="UpdateEvent",
+        name="events:update",
+        path=urls.EVENT_UPDATE,
+        guards=[requires_event_ownership],
+        sync_to_thread=False,
+    )
     def update_event(
         self,
         data: schemas.EventUpdate,
@@ -109,6 +117,7 @@ class EventController(Controller):
         summary="Remove Event",
         description="Removes a event and all associated data from the system.",
         guards=[requires_event_ownership],
+        sync_to_thread=False,
     )
     def delete_event(
         self,

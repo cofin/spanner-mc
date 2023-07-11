@@ -39,6 +39,7 @@ class AccessController(Controller):
         media_type=MediaType.JSON,
         cache=False,
         summary="Login",
+        sync_to_thread=False,
     )
     def login(
         self,
@@ -56,6 +57,7 @@ class AccessController(Controller):
         cache=False,
         summary="Create User",
         description="Register a new account.",
+        sync_to_thread=False,
     )
     def signup(self, users_service: UserService, data: schemas.UserSignup) -> schemas.User:
         """User Signup."""
@@ -70,6 +72,7 @@ class AccessController(Controller):
         guards=[requires_active_user],
         summary="User Profile",
         description="User profile information.",
+        sync_to_thread=False,
     )
     def profile(self, current_user: User, users_service: UserService) -> schemas.User:
         """User Profile."""

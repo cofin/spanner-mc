@@ -44,6 +44,7 @@ def run_migrations_offline() -> None:
         version_table_pk=False,
         version_table=settings.db.MIGRATION_DDL_VERSION_TABLE,
         user_module_prefix="sa.",
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -59,6 +60,7 @@ def do_run_migrations(connection: Connection) -> None:
         version_table_pk=False,
         version_table=settings.db.MIGRATION_DDL_VERSION_TABLE,
         user_module_prefix="sa.",
+        render_as_batch=True,
     )
 
     with context.begin_transaction():

@@ -33,6 +33,7 @@ class SystemController(Controller):
         summary="Health Check",
         description="Execute a health check against backend components.  Returns system information including database status.",
         signature_namespace={"SystemHealth": schemas.SystemHealth},
+        sync_to_thread=False,
     )
     def check_system_health(self, db_session: Session) -> Response[schemas.SystemHealth]:
         """Check database available and returns app config info."""
