@@ -22,10 +22,14 @@ google-re2 = {version = ">=1.0", platform = 'linux'}
 litestar = {git = "https://github.com/cofin/litestar.git", branch = "spanner-fixes", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry'], allow-prereleases = true}
 passlib = {version = "*", extras = ["argon2"]}
 pydantic = {version = ">=1.9.0,<2.0.0", extras = ["dotenv", "email"]}
-python = ">=3.9,<3.12"
+python = ">=3.11,<3.12"
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
 uvloop = "*"
+opentelemetry-api = "^1.18.0"
+opentelemetry-sdk = "^1.18.0"
+opentelemetry-instrumentation = "^0.39b0"
+opentelemetry-exporter-gcp-trace = "^1.5.0"
 
 [tool.poetry.group.dev.dependencies]
 aws-secretsmanager-caching = "*"

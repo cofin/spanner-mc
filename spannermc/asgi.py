@@ -25,7 +25,18 @@ def create_app() -> Litestar:
 
     from spannermc import domain
     from spannermc.domain.security import provide_user
-    from spannermc.lib import compression, constants, cors, db, dependencies, exceptions, log, repository, settings
+    from spannermc.lib import (
+        compression,
+        constants,
+        cors,
+        db,
+        dependencies,
+        exceptions,
+        log,
+        otel,
+        repository,
+        settings,
+    )
 
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -44,7 +55,7 @@ def create_app() -> Litestar:
         },
         debug=settings.app.DEBUG,
         before_send=[log.controller.BeforeSendHandler()],
-        middleware=[log.controller.middleware_factory],
+        middleware=[log.controller.middleware_factory, otel.config.middleware],
         logging_config=log.config,
         openapi_config=domain.openapi.config,
         type_encoders={SecretStr: str},
