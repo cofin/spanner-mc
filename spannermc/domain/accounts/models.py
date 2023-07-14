@@ -35,7 +35,7 @@ class User(orm.TimestampedDatabaseModel):
     # ------------
     events: Mapped[list[Event]] = relationship(
         back_populates="user",
-        lazy="selectin",
+        lazy="noload",
         uselist=True,
         cascade="all, delete",
         viewonly=True,

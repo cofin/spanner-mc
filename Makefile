@@ -105,4 +105,4 @@ clean:       ## remove all build, testing, and static documentation files
 deploy:												## Deploy to cloudrun
 
 	@echo "=> Deploying to Google CloudRun..."
-	source ./.gcloud.env && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION_NAME="$$_REGION_NAME",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_ENV_SECRETS="$$_ENV_SECRETS",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",BRANCH_NAME="main",SHORT_SHA="$$(git rev-parse --short HEAD)"
+	source ./.gcloud.env && gcloud config set project $$_PROJECT_ID && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION_NAME="$$_REGION_NAME",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_ENV_SECRETS="$$_ENV_SECRETS",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",BRANCH_NAME="main",SHORT_SHA="$$(git rev-parse --short HEAD)"
