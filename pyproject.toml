@@ -18,7 +18,7 @@ users = "spannermc.cli:user_management_app"
 google-api-core = "*"
 google-cloud-secret-manager = "*"
 google-re2 = {version = ">=1.0", platform = 'linux'}
-litestar = {git = "https://github.com/cofin/litestar.git", branch = "spanner-fixes", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry'], allow-prereleases = true}
+litestar = {git = "https://github.com/cofin/litestar.git", branch = "main", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry'], allow-prereleases = true}
 locust = "^2.15.1"
 opentelemetry-api = ">=1.18.0"
 opentelemetry-exporter-gcp-monitoring = {version = ">=1.4.9", allow-prereleases = true}
