@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Literal
+from uuid import UUID
 
-from litestar.contrib.repository.filters import BeforeAfter, CollectionFilter, LimitOffset, OrderBy, SearchFilter
+from litestar.contrib.repository.filters import (
+    BeforeAfter,
+    CollectionFilter,
+    FilterTypes,
+    LimitOffset,
+    OrderBy,
+    SearchFilter,
+)
 from litestar.di import Provide
 from litestar.params import Dependency, Parameter
 
 from spannermc.lib import constants
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
 
 __all__ = [
     "create_collection_dependencies",
@@ -31,12 +35,14 @@ __all__ = [
 ]
 
 
-DateOrNone = datetime | None
+DTorNone = datetime | None
 StringOrNone = str | None
-FilterTypes = BeforeAfter | CollectionFilter[Any] | LimitOffset | SearchFilter | OrderBy
+UuidOrNone = UUID | None
+BooleanOrNone = bool | None
+SortOrderOrNone = Literal["asc", "desc"] | None
 """Aggregate type alias of the types supported for collection filtering."""
-CREATED_FILTER_DEPENDENCY_KEY = "created_filter"
 FILTERS_DEPENDENCY_KEY = "filters"
+CREATED_FILTER_DEPENDENCY_KEY = "created_filter"
 ID_FILTER_DEPENDENCY_KEY = "id_filter"
 LIMIT_OFFSET_DEPENDENCY_KEY = "limit_offset"
 UPDATED_FILTER_DEPENDENCY_KEY = "updated_filter"
@@ -62,8 +68,8 @@ def provide_id_filter(
 
 
 def provide_created_filter(
-    before: DateOrNone = Parameter(query="createdBefore", default=None, required=False),
-    after: DateOrNone = Parameter(query="createdAfter", default=None, required=False),
+    before: DTorNone = Parameter(query="createdBefore", default=None, required=False),
+    after: DTorNone = Parameter(query="createdAfter", default=None, required=False),
 ) -> BeforeAfter:
     """Return type consumed by `Repository.filter_on_datetime_field()`.
 
@@ -77,9 +83,48 @@ def provide_created_filter(
     return BeforeAfter("created_at", before, after)
 
 
+def provide_search_filter(
+    search_field: StringOrNone = Parameter(title="Field to search", query="searchField", default=None, required=False),
+    search_text: StringOrNone = Parameter(title="Field to search", query="searchString", default=None, required=False),
+    ignore_case: BooleanOrNone = Parameter(
+        title="Search should be case sensitive", query="searchIgnoreCase", default=None, required=False
+    ),
+) -> SearchFilter:
+    """Add offset/limit pagination.
+
+    Return type consumed by `Repository.apply_search_filter()`.
+
+    Parameters
+    ----------
+    field : int
+        LIMIT to apply to select.
+    page_size : int
+        OFFSET to apply to select.
+    """
+    return SearchFilter(field_name=search_field, value=search_text, ignore_case=ignore_case or False)  # type: ignore[arg-type]
+
+
+def provide_order_by(
+    field_name: StringOrNone = Parameter(title="Order by field", query="orderBy", default=None, required=False),
+    sort_order: SortOrderOrNone = Parameter(title="Field to search", query="sortOrder", default="desc", required=False),
+) -> OrderBy:
+    """Add offset/limit pagination.
+
+    Return type consumed by `Repository.apply_order_by()`.
+
+    Parameters
+    ----------
+    field_name : str
+        Field name to order by.
+    sort_order : str
+        Order field ascending ('asc') or descending ('desc)
+    """
+    return OrderBy(field_name=field_name, sort_order=sort_order)  # type: ignore[arg-type]
+
+
 def provide_updated_filter(
-    before: DateOrNone = Parameter(query="updatedBefore", default=None, required=False),
-    after: DateOrNone = Parameter(query="updatedAfter", default=None, required=False),
+    before: DTorNone = Parameter(query="updatedBefore", default=None, required=False),
+    after: DTorNone = Parameter(query="updatedAfter", default=None, required=False),
 ) -> BeforeAfter:
     """Add updated filter.
 
@@ -118,48 +163,9 @@ def provide_limit_offset_pagination(
     return LimitOffset(page_size, page_size * (current_page - 1))
 
 
-def provide_search_filter(
-    field: str = Parameter(title="Field to search", query="searchField", default=None, required=False),
-    search: str = Parameter(title="Field to search", query="searchString", default=None, required=False),
-    ignore_case: bool = Parameter(
-        title="Search should be case sensitive", query="searchIgnoreCase", default=None, required=False
-    ),
-) -> SearchFilter:
-    """Add offset/limit pagination.
-
-    Return type consumed by `Repository.apply_search_filter()`.
-
-    Parameters
-    ----------
-    current_page : int
-        LIMIT to apply to select.
-    page_size : int
-        OFFSET to apply to select.
-    """
-    return SearchFilter(field_name=field, value=search, ignore_case=ignore_case or False)
-
-
-def provide_order_by(
-    field_name: str = Parameter(title="Order by field", query="orderBy", default=None, required=False),
-    sort_order: Literal["asc", "desc"] = Parameter(
-        title="Field to search", query="sortOrder", default="desc", required=False
-    ),
-) -> OrderBy:
-    """Add offset/limit pagination.
-
-    Return type consumed by `Repository.apply_order_by()`.
-
-    Parameters
-    ----------
-    field_name : str
-        Field name to order by.
-    sort_order : str
-        Order field ascending ('asc') or descending ('desc)
-    """
-    return OrderBy(field_name=field_name, sort_order=sort_order)
-
-
 def provide_filter_dependencies(
+    created_filter: BeforeAfter = Dependency(skip_validation=True),
+    updated_filter: BeforeAfter = Dependency(skip_validation=True),
     id_filter: CollectionFilter = Dependency(skip_validation=True),
     limit_offset: LimitOffset = Dependency(skip_validation=True),
     search_filter: SearchFilter = Dependency(skip_validation=True),
@@ -179,6 +185,10 @@ def provide_filter_dependencies(
     ----------
     id_filter : repository.CollectionFilter
         Filter for scoping query to limited set of identities.
+    created_filter : repository.BeforeAfter
+        Filter for scoping query to instance creation date/time.
+    updated_filter : repository.BeforeAfter
+        Filter for scoping query to instance update date/time.
     limit_offset : repository.LimitOffset
         Filter for query pagination.
     search_filter : repository.SearchFilter
@@ -192,7 +202,7 @@ def provide_filter_dependencies(
     list[FilterTypes]
         List of filters parsed from connection.
     """
-    filters: list[FilterTypes] = [id_filter, limit_offset]
+    filters: list[FilterTypes] = [created_filter, id_filter, limit_offset, updated_filter]
     if search_filter.field_name is not None and search_filter.value is not None:
         filters.append(search_filter)
     if order_by.field_name is not None:
@@ -208,7 +218,6 @@ def create_collection_dependencies() -> dict[str, Provide]:
     Returns:
     -------
     dict[str, Provide]
-
     """
     return {
         LIMIT_OFFSET_DEPENDENCY_KEY: Provide(provide_limit_offset_pagination, sync_to_thread=False),

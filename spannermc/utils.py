@@ -12,6 +12,9 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+if TYPE_CHECKING:
+    from types import ModuleType
+
 __all__ = [
     "camel_case",
     "case_insensitive_string_compare",
@@ -20,10 +23,6 @@ __all__ = [
     "module_to_os_path",
     "slugify",
 ]
-
-
-if TYPE_CHECKING:
-    from types import ModuleType
 
 
 def check_email(email: str) -> str:
