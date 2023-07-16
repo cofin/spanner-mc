@@ -14,7 +14,7 @@ class Event(CamelizedBaseSchema):
     message: str
     user_id: UUID
     user_email: str
-    user_name: str | None
+    user_name: str | None = None
 
 
 # Properties to receive via API on creation

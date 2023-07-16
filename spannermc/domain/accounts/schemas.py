@@ -18,7 +18,7 @@ class User(CamelizedBaseSchema):
 
     id: UUID
     email: str
-    name: str | None
+    name: str | None = None
     is_superuser: bool
     is_active: bool
     is_verified: bool
@@ -60,6 +60,3 @@ class UserUpdate(CamelizedBaseSchema):
     is_superuser: bool | None = False
     is_active: bool | None = False
     is_verified: bool | None = False
-
-
-User.update_forward_refs()

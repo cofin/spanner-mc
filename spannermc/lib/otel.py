@@ -29,10 +29,10 @@ meter = metrics.get_meter(__name__)
 # Create and export one trace every 100 requests
 sampler = ParentBasedTraceIdRatio(1 / 10)
 tracer_provider = TracerProvider(sampler=sampler)
-processor = BatchSpanProcessor(CloudTraceSpanExporter())
+processor = BatchSpanProcessor(CloudTraceSpanExporter())  # type: ignore
 trace.set_tracer_provider(tracer_provider)
-tracer_provider.add_span_processor(  # type: ignore[attr-defined]
+tracer_provider.add_span_processor(
     # Initialize the cloud tracing exporter
-    BatchSpanProcessor(CloudTraceSpanExporter())
+    BatchSpanProcessor(CloudTraceSpanExporter())  # type: ignore
 )
 config = OpenTelemetryConfig(meter=meter, tracer_provider=tracer_provider)

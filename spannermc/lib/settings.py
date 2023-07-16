@@ -5,7 +5,6 @@ settings class, except `AppSettings`.
 """
 from __future__ import annotations
 
-import binascii
 import importlib
 import io
 import logging
@@ -18,11 +17,10 @@ from typing import Final, Literal
 import google.auth
 from dotenv import load_dotenv
 from litestar.data_extractors import RequestExtractorField, ResponseExtractorField  # noqa: TCH002
-from pydantic import BaseSettings as _BaseSettings
-from pydantic import SecretBytes, ValidationError, validator
+from pydantic import Field, ValidationError, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from spannermc import utils
-from spannermc.lib import serialization
 from spannermc.lib.cloud import gcp as gcp_secret_manager
 
 __all__ = ["BASE_DIR", "BaseSettings", "app", "openapi", "server", "cloud", "db"]
@@ -34,30 +32,10 @@ BASE_DIR: Final = utils.module_to_os_path(DEFAULT_MODULE_NAME)
 version = importlib.metadata.version(DEFAULT_MODULE_NAME)
 
 
-class BaseSettings(_BaseSettings):
-    """Base Settings."""
-
-    class Config:
-        """Base Settings Config."""
-
-        json_loads = serialization.from_json
-        json_dumps = serialization.to_json
-        case_sensitive = False
-        validate_assignment = True
-        orm_mode = True
-        use_enum_values = True
-        arbitrary_types_allowed = True
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-
 class ServerSettings(BaseSettings):
     """Server configurations."""
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-        env_prefix = "SERVER_"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", env_prefix="SERVER_")
 
     APP_LOC: str = "spannermc.asgi:create_app"
     """Path to app executable, or factory."""
@@ -82,9 +60,7 @@ class ServerSettings(BaseSettings):
 class AppSettings(BaseSettings):
     """Generic application settings."""
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
 
     NAME: str = "Spanner Litestar"
     """Application name."""
@@ -94,7 +70,7 @@ class AppSettings(BaseSettings):
     """Run `Litestar` with `debug=True`."""
     ENVIRONMENT: str = "prod"
     """'dev', 'prod', etc."""
-    SECRET_KEY: SecretBytes
+    SECRET_KEY: str
     """secret key"""
     JWT_ENCRYPTION_ALGORITHM: str = "HS256"
     """JWT encryption algorithm"""
@@ -114,7 +90,8 @@ class AppSettings(BaseSettings):
         """
         return utils.slugify(self.NAME)
 
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(
         cls,
         value: str | list[str],
@@ -128,14 +105,15 @@ class AppSettings(BaseSettings):
             return list(value)
         raise ValueError(value)
 
-    @validator("SECRET_KEY", pre=True, always=True)
+    @field_validator("SECRET_KEY", mode="before")
+    @classmethod
     def generate_secret_key(
         cls,
-        value: SecretBytes | None,
-    ) -> SecretBytes:
+        value: str | None,
+    ) -> str:
         """Generate a secret key."""
         if value is None:
-            return SecretBytes(binascii.hexlify(os.urandom(32)))
+            return os.urandom(32).decode()
         return value
 
 
@@ -157,14 +135,9 @@ class OpenAPISettings(BaseSettings):
         OpenAPI document contact email.
     """
 
-    class Config:
-        """OpenAPI Settings Config Metadata."""
+    model_config = SettingsConfigDict(env_prefix="OPENAPI_", case_sensitive=True, env_file=".env")
 
-        env_prefix = "OPENAPI_"
-        case_sensitive = True
-        env_file = ".env"
-
-    TITLE: str | None
+    TITLE: str | None = None
     VERSION: str = f"v{version}"
     CONTACT_NAME: str = "Admin"
     CONTACT_EMAIL: str = "admin@localhost"
@@ -186,21 +159,16 @@ class DatabaseSettings(BaseSettings):
         URI for duckdb. All analytics are done in-process and not stored by default.  Modify this to a file path if you'd like to store locally
     """
 
-    class Config:
-        """Database Settings Config Metadata."""
-
-        env_prefix = "DB_"
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_prefix="DB_", case_sensitive=True, env_file=".env")
 
     ECHO: bool = False
     ECHO_POOL: bool | Literal["debug"] = False
     POOL_DISABLE: bool = False
-    POOL_MAX_OVERFLOW: int = 50
-    POOL_SIZE: int = 10
+    POOL_MAX_OVERFLOW: int = 3
+    POOL_SIZE: int = 5
     POOL_TIMEOUT: int = 30
     POOL_RECYCLE: int = 300
-    POOL_PRE_PING: bool = True
+    POOL_PRE_PING: bool = False
     URL: str
     MIGRATION_CONFIG: str = f"{BASE_DIR}/lib/db/alembic.ini"
     MIGRATION_PATH: str = f"{BASE_DIR}/lib/db/migrations"
@@ -212,34 +180,18 @@ class DatabaseSettings(BaseSettings):
 class CloudSettings(BaseSettings):
     """Google Cloud Configuration."""
 
-    class Config:
-        """Cloud Settings Config Metadata."""
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
 
-        case_sensitive = True
-        env_file = ".env"
-        fields = {
-            "GOOGLE_CREDENTIALS": {
-                "env": "GOOGLE_APPLICATION_CREDENTIALS",
-            },
-            "GOOGLE_PROJECT": {"env": "GOOGLE_PROJECT_ID"},
-            "ENV_SECRETS": {"env": "ENV_SECRETS"},
-        }
-
-    ACTIVE_CLOUD: str = "local"
-    GOOGLE_PROJECT: str | None = None
-    GOOGLE_CREDENTIALS: str | None = None
-    ENV_SECRETS: str = "runtime-secrets"
+    ACTIVE_CLOUD: str = Field(default="local")
+    GOOGLE_PROJECT: str | None = Field(default=None, validation_alias="GOOGLE_PROJECT_ID")
+    GOOGLE_CREDENTIALS: str | None = Field(default=None, validation_alias="GOOGLE_APPLICATION_CREDENTIALS")
+    ENV_SECRETS: str = Field(default="runtime-secrets")
 
 
 class LogSettings(BaseSettings):
     """Log Settings."""
 
-    class Config:
-        """Log Settings Config Metadata."""
-
-        env_prefix = "LOG_"
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_prefix="LOG_", case_sensitive=True, env_file=".env")
 
     # https://stackoverflow.com/a/1845097/6560549
     EXCLUDE_PATHS: str = r"\A(?!x)x"
@@ -333,14 +285,12 @@ def get_settings(
             load_dotenv(stream=io.StringIO(secret))
 
     try:
-        app: AppSettings = AppSettings.parse_obj({})
-        db: DatabaseSettings = DatabaseSettings.parse_obj({})
-        openapi: OpenAPISettings = OpenAPISettings.parse_obj({})
-        server: ServerSettings = ServerSettings.parse_obj(
-            {"HOST": "0.0.0.0", "RELOAD_DIRS": [str(BASE_DIR)]},  # noqa: S104
-        )
-        cloud: CloudSettings = CloudSettings.parse_obj({})
-        log: LogSettings = LogSettings.parse_obj({})
+        app: AppSettings = AppSettings()
+        db: DatabaseSettings = DatabaseSettings()
+        openapi: OpenAPISettings = OpenAPISettings()
+        server: ServerSettings = ServerSettings(RELOAD_DIRS=[str(BASE_DIR)])
+        cloud: CloudSettings = CloudSettings()
+        log: LogSettings = LogSettings()
     except ValidationError as e:
         logger.fatal("Could not load settings. %s", e)
         sys.exit(1)

@@ -12,11 +12,3 @@ class SystemHealth(CamelizedBaseSchema):
     app: str = settings.app.NAME
     version: str = settings.app.BUILD_NUMBER
     database_status: Literal["online", "offline"]
-
-    class Config:
-        """Schema configuration."""
-
-        schema_extra = {
-            "app": settings.app.NAME,
-            "version": settings.app.BUILD_NUMBER,
-        }
