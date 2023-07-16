@@ -33,15 +33,15 @@ sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
 uvloop = "*"
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
-aws-secretsmanager-caching = "*"
 black = "*"
 coverage = {extras = ["toml"], version = "*"}
 locust = "^2.15.1"
 mypy = ">=1.0.0"
 pre-commit = "*"
-pylint = "*"
-pylint-pydantic = "*"
 pytest = "*"
 pytest-asyncio = "*"
 pytest-cov = "*"
