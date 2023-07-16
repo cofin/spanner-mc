@@ -47,7 +47,7 @@ HTTP_RESPONSE_BODY: Literal["http.response.body"] = "http.response.body"
 REQUEST_BODY_FIELD: Literal["body"] = "body"
 
 
-def add_open_telemetry_spans(_, __, event_dict):
+def add_open_telemetry_spans(_: WrappedLogger, __: str, event_dict: EventDict) -> EventDict:
     span = trace.get_current_span()
     if not span.is_recording():
         event_dict["span"] = None
