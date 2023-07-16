@@ -10,13 +10,10 @@ import contextlib
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypeVar, cast, overload
 
-from litestar.contrib.repository.filters import (
-    FilterTypes,
-    LimitOffset,
-)
+from litestar.contrib.repository.filters import FilterTypes, LimitOffset
 from litestar.contrib.sqlalchemy.repository import ModelT, SQLAlchemySyncRepository
 from litestar.pagination import OffsetPagination
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 
 from spannermc.lib.db import session_factory
 from spannermc.lib.db.orm import model_from_dict
@@ -27,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from pydantic import BaseModel
-    from sqlalchemy import Select
+    from sqlalchemy import RowMapping, Select
     from sqlalchemy.orm import Session
 
 __all__ = ["SQLAlchemySyncRepositoryService"]
@@ -284,14 +281,14 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
         )
 
     @overload
-    def to_schema(self, dto: type[ModelDTOT], data: ModelT) -> ModelDTOT:
+    def to_schema(self, dto: type[ModelDTOT], data: ModelT | RowMapping) -> ModelDTOT:
         ...
 
     @overload
     def to_schema(
         self,
         dto: type[ModelDTOT],
-        data: Sequence[ModelT],
+        data: Sequence[ModelT] | list[RowMapping],
         total: int | None = None,
         *filters: FilterTypes,
     ) -> OffsetPagination[ModelDTOT]:
@@ -300,7 +297,7 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
     def to_schema(
         self,
         dto: type[ModelDTOT],
-        data: ModelT | Sequence[ModelT],
+        data: ModelT | Sequence[ModelT] | list[RowMapping] | RowMapping,
         total: int | None = None,
         *filters: FilterTypes,
     ) -> ModelDTOT | OffsetPagination[ModelDTOT]:
@@ -316,12 +313,12 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
             The list of instances retrieved from the repository.
         """
         if not isinstance(data, Sequence | list):
-            return parse_obj_as(dto, data)
+            return TypeAdapter(dto).validate_python(data)
         limit_offset = self.find_filter(LimitOffset, *filters)
         total = total if total else len(data)
         limit_offset = limit_offset if limit_offset is not None else LimitOffset(limit=len(data), offset=0)
         return OffsetPagination[dto](  # type: ignore[valid-type]
-            items=parse_obj_as(list[dto], data),  # type: ignore[valid-type]
+            items=TypeAdapter(list[dto]).validate_python(data),  # type: ignore[valid-type]
             limit=limit_offset.limit,
             offset=limit_offset.offset,
             total=total,

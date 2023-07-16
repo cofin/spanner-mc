@@ -17,7 +17,7 @@ __all__ = [
 
 def _default(value: Any) -> str:
     if isinstance(value, BaseModel):
-        return str(value.dict(by_alias=True))
+        return str(value.model_dump(by_alias=True))
     if isinstance(value, UUID):
         return str(value)
     if isinstance(value, datetime.datetime):

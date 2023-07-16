@@ -10,7 +10,7 @@ from litestar.dto.factory.stdlib.dataclass import DataclassDTO
 if TYPE_CHECKING:
     from collections.abc import Set
 
-    from litestar.dto.factory.types import RenameStrategy
+    from litestar.dto.types import RenameStrategy
 
 __all__ = ["config", "dto_field", "DTOConfig", "SQLAlchemyDTO", "DataclassDTO"]
 

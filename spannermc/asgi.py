@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from litestar import Litestar
@@ -58,7 +60,7 @@ def create_app() -> Litestar:
         middleware=[log.controller.middleware_factory, otel.config.middleware],
         logging_config=log.config,
         openapi_config=domain.openapi.config,
-        type_encoders={SecretStr: str},
+        type_encoders={SecretStr: str, BaseModel: _base_model_encoder},
         route_handlers=[*domain.routes],
         plugins=[db.plugin],
         on_startup=[lambda: log.configure(log.default_processors)],  # type: ignore[arg-type]
@@ -67,3 +69,7 @@ def create_app() -> Litestar:
             **domain.signature_namespace,
         },
     )
+
+
+def _base_model_encoder(value: BaseModel) -> dict[str, Any]:
+    return value.model_dump(by_alias=True)
