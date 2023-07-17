@@ -6,10 +6,6 @@ from opentelemetry.exporter.cloud_monitoring import (
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.cloud_trace_propagator import (
-    CloudTraceFormatPropagator,
-)
 from opentelemetry.resourcedetector.gcp_resource_detector import GoogleCloudResourceDetector
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
@@ -20,9 +16,6 @@ from opentelemetry.sdk.trace.sampling import ParentBasedTraceIdRatio
 
 from . import db, settings
 
-set_global_textmap(CloudTraceFormatPropagator())
-GrpcInstrumentorClient().instrument()  # type: ignore[no-untyped-call]
-SQLAlchemyInstrumentor().instrument(engine=db.engine)
 staging_labels = {"environment": settings.app.ENVIRONMENT}
 _resources = get_aggregated_resources(
     [
@@ -54,4 +47,6 @@ trace.set_tracer_provider(tracer_provider)
 trace.get_tracer_provider().add_span_processor(  # type: ignore[attr-defined]
     BatchSpanProcessor(CloudTraceSpanExporter(), max_queue_size=10000)  # type: ignore
 )
+GrpcInstrumentorClient().instrument()  # type: ignore[no-untyped-call]
+SQLAlchemyInstrumentor().instrument(engine=db.engine)
 config = OpenTelemetryConfig(tracer_provider=tracer_provider, meter_provider=meter_provider)
