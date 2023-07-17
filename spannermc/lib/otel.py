@@ -36,7 +36,7 @@ meter_provider = MeterProvider(
 meter = metrics.get_meter(__name__)
 
 # Create and export one trace every 100 requests
-sampler = ParentBasedTraceIdRatio(1 / 10)
+sampler = ParentBasedTraceIdRatio(1 / 500)
 tracer_provider = TracerProvider(sampler=sampler)
 processor = BatchSpanProcessor(CloudTraceSpanExporter())  # type: ignore
 trace.set_tracer_provider(tracer_provider)
