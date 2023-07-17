@@ -4,6 +4,8 @@ from opentelemetry.exporter.cloud_monitoring import (
     CloudMonitoringMetricsExporter,
 )
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+from opentelemetry.propagate import set_global_textmap
+from opentelemetry.propagators.cloud_trace_propagator import CloudTraceFormatPropagator
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
@@ -13,9 +15,16 @@ from opentelemetry.sdk.trace.sampling import ParentBasedTraceIdRatio
 
 from . import settings
 
+set_global_textmap(CloudTraceFormatPropagator())
 staging_labels = {"environment": settings.app.ENVIRONMENT}
 meter_provider = MeterProvider(
-    metric_readers=[PeriodicExportingMetricReader(CloudMonitoringMetricsExporter(), export_interval_millis=5000)],
+    metric_readers=[
+        PeriodicExportingMetricReader(
+            CloudMonitoringMetricsExporter(add_unique_identifier=True),
+            export_interval_millis=15000,
+            export_timeout_millis=45000,
+        )
+    ],
     resource=Resource.create(
         {
             "service.name": settings.app.NAME,

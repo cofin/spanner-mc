@@ -1,17 +1,47 @@
 timeout: "1800s"
 steps:
-  - id: "Build Container"
-    name: "gcr.io/kaniko-project/executor:debug"
+  - id: "Fetching container cache"
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
     args:
       [
-        "--cache",
-        "--compressed-caching",
-        "--cleanup",
-        "--destination=${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "-c",
+        "docker pull ${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA} || docker pull ${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:latest || exit 0",
+      ]
+  - id: "Building containers"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
         "--build-arg",
         "ENV_SECRETS=${_ENV_SECRETS}",
-        "--dockerfile",
+        "-t",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "--file",
         "deploy/docker/run/Dockerfile",
+        ".",
+      ]
+  - id: "Tagging image as latest"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:latest",
+      ]
+  - id: "Pushing tag for git revision"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA}",
+      ]
+  - id: "Pushing tag for latest"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:latest",
       ]
   - id: "apply database migrations"
     name: "gcr.io/google-appengine/exec-wrapper"
@@ -39,7 +69,7 @@ steps:
         "--service-account",
         "${_SERVICE_ACCOUNT}",
         "--timeout",
-        "60",
+        "45",
         "--memory",
         "${_MEMORY_SIZE}",
         "--max-instances",
