@@ -1,13 +1,5 @@
 timeout: "1800s"
 steps:
-  - id: "Fetching container cache"
-    name: "gcr.io/cloud-builders/docker"
-    entrypoint: "bash"
-    args:
-      [
-        "-c",
-        "docker pull ${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:${BRANCH_NAME}-${SHORT_SHA} || docker pull ${_REGION_NAME}-docker.pkg.dev/${_PROJECT_ID}/spannermc-artifacts/${_SERVICE_NAME}:latest || exit 0",
-      ]
   - id: "Building containers"
     name: "gcr.io/cloud-builders/docker"
     args:
