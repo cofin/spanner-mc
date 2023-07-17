@@ -103,7 +103,7 @@ config = LoggingConfig(
         },
         "opentelemetry.sdk.metrics._internal": {
             "propagate": False,
-            "level": 30,
+            "level": 40,
             "handlers": ["queue_listener"],
         },
     },

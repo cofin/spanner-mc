@@ -18,16 +18,20 @@ users = "spannermc.cli:user_management_app"
 google-api-core = "*"
 google-cloud-secret-manager = "*"
 google-re2 = {version = ">=1.0", platform = 'linux'}
-litestar = {git = "https://github.com/cofin/litestar.git", branch = "main", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry'], allow-prereleases = true}
-opentelemetry-api = ">=1.18.0"
-opentelemetry-exporter-gcp-monitoring = {version = ">=1.4.9", allow-prereleases = true}
-opentelemetry-exporter-gcp-trace = {version = ">=1.5.0", allow-prereleases = true}
-opentelemetry-instrumentation = ">=0.39b0"
-opentelemetry-sdk = ">=1.18.0"
+litestar = {git = "https://github.com/litestar-org/litestar.git", branch = "main", extras = ["jwt", 'cli', 'jinja', 'sqlalchemy', 'structlog', 'opentelemetry', 'pydantic'], allow-prereleases = true}
+opentelemetry-api = ">=1.19.0"
+opentelemetry-exporter-gcp-monitoring = {version = ">=1.5.0a0", allow-prereleases = true}
+opentelemetry-exporter-gcp-trace = {version = ">=1.5.0a0", allow-prereleases = true}
+opentelemetry-instrumentation = ">=0.40b0"
+opentelemetry-instrumentation-grpc = ">=0.40b0"
+opentelemetry-instrumentation-sqlalchemy = ">=0.40b0"
+opentelemetry-propagator-gcp = "*"
+opentelemetry-resourcedetector-gcp = "*"
+opentelemetry-sdk = ">=1.19.0"
 passlib = {version = "*", extras = ["argon2"]}
-pydantic = {version = ">=1.9.0", extras = ["dotenv", "email"]}
 pydantic-settings = "*"
 python = ">=3.11,<3.12"
+python-dotenv = "*"
 sqlalchemy = {git = "https://github.com/sqlalchemy/sqlalchemy.git", branch = "main"}
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}

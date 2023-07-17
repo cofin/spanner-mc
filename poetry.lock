@@ -1618,7 +1618,8 @@ msgspec = ">=0.17.0"
 multidict = ">=6.0.2"
 opentelemetry-instrumentation-asgi = {version = "*", optional = true}
 polyfactory = ">=2.3.2"
-pydantic = "*"
+pydantic = {version = "*", extras = ["email"], optional = true}
+pydantic-extra-types = {version = ">=2", optional = true}
 python-jose = {version = "*", optional = true}
 pyyaml = "*"
 rich = {version = ">=13.0.0", optional = true}
@@ -1640,6 +1641,7 @@ jwt = ["cryptography", "python-jose"]
 opentelemetry = ["opentelemetry-instrumentation-asgi"]
 picologging = ["picologging"]
 prometheus = ["prometheus-client"]
+pydantic = ["pydantic-extra-types (>=2)", "pydantic[email]"]
 redis = ["redis[hiredis] (>=4.4.4,<4.5.0)"]
 sqlalchemy = ["alembic", "sqlalchemy (>=2.0.12)"]
 standard = ["click", "jinja2 (>=3.1.2)", "jsbeautifier", "rich (>=13.0.0)", "rich-click", "uvicorn[standard] (>=0.22.0)"]
@@ -1648,9 +1650,9 @@ tortoise-orm = ["tortoise-orm (>=0.17.0)"]
 
 [package.source]
 type = "git"
-url = "https://github.com/cofin/litestar.git"
+url = "https://github.com/litestar-org/litestar.git"
 reference = "main"
-resolved_reference = "240a54a4f460a98ba0cea6b4005dfb46db163a88"
+resolved_reference = "11cdbe0f40d2f9f185f6bbbdf01e8e7a2d7542d3"
 
 [[package]]
 name = "locust"
@@ -2150,6 +2152,64 @@ instruments = ["asgiref (>=3.0,<4.0)"]
 test = ["opentelemetry-instrumentation-asgi[instruments]", "opentelemetry-test-utils (==0.40b0)"]
 
 [[package]]
+name = "opentelemetry-instrumentation-grpc"
+version = "0.40b0"
+description = "OpenTelemetry gRPC instrumentation"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "opentelemetry_instrumentation_grpc-0.40b0-py3-none-any.whl", hash = "sha256:36904f1c25a29465efcb1cc3f90b5871b462f547cd6ab244c5ea6185872eb507"},
+    {file = "opentelemetry_instrumentation_grpc-0.40b0.tar.gz", hash = "sha256:c8ac3a1db5553f17aa0d071ac0a3f520da0ef1e9c6f1d1625b211fa58b084a7f"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.40b0"
+opentelemetry-sdk = ">=1.12,<2.0"
+opentelemetry-semantic-conventions = "0.40b0"
+wrapt = ">=1.0.0,<2.0.0"
+
+[package.extras]
+instruments = ["grpcio (>=1.27,<2.0)"]
+test = ["opentelemetry-instrumentation-grpc[instruments]", "opentelemetry-sdk (>=1.12,<2.0)", "opentelemetry-test-utils (==0.40b0)", "protobuf (>=3.13,<4.0)"]
+
+[[package]]
+name = "opentelemetry-instrumentation-sqlalchemy"
+version = "0.40b0"
+description = "OpenTelemetry SQLAlchemy instrumentation"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "opentelemetry_instrumentation_sqlalchemy-0.40b0-py3-none-any.whl", hash = "sha256:0aa005303a8dd48f357e7eb858ef8563643ab9b8519b22630437f1b81f9e5a90"},
+    {file = "opentelemetry_instrumentation_sqlalchemy-0.40b0.tar.gz", hash = "sha256:09148aaa973c100a22ec4089e57771bfd84182d16bfc21943c191605dd6640cd"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.40b0"
+opentelemetry-semantic-conventions = "0.40b0"
+packaging = ">=21.0"
+wrapt = ">=1.11.2"
+
+[package.extras]
+instruments = ["sqlalchemy"]
+test = ["opentelemetry-instrumentation-sqlalchemy[instruments]", "opentelemetry-sdk (>=1.12,<2.0)", "pytest"]
+
+[[package]]
+name = "opentelemetry-propagator-gcp"
+version = "1.5.0"
+description = "Google Cloud propagator for OpenTelemetry"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "opentelemetry-propagator-gcp-1.5.0.tar.gz", hash = "sha256:a9bb95e4eced1587bd52a0997de46ce741a55ce49bd217ce167d984e30f11164"},
+    {file = "opentelemetry_propagator_gcp-1.5.0-py3-none-any.whl", hash = "sha256:dc35ec00ace48b444d7e0dcd06b5f23807214db5edb700ebae0e3139b644a070"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.0,<2.0"
+
+[[package]]
 name = "opentelemetry-resourcedetector-gcp"
 version = "1.5.0a0"
 description = "Google Cloud resource detector for OpenTelemetry"
@@ -2548,6 +2608,23 @@ files = [
 
 [package.dependencies]
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
+
+[[package]]
+name = "pydantic-extra-types"
+version = "2.0.0"
+description = "Extra Pydantic types."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pydantic_extra_types-2.0.0-py3-none-any.whl", hash = "sha256:63e5109f00815e71fff2b82090ff0523baef6b8a51889356fd984ef50c184e64"},
+    {file = "pydantic_extra_types-2.0.0.tar.gz", hash = "sha256:137ddacb168d95ea77591dbb3739ec4da5eeac0fc4df7f797371d9904451a178"},
+]
+
+[package.dependencies]
+pydantic = ">=2.0b3"
+
+[package.extras]
+all = ["phonenumbers (>=8,<9)", "pycountry (>=22,<23)"]
 
 [[package]]
 name = "pydantic-settings"
@@ -3620,4 +3697,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "4aec4f7eda33390cd2c818233d56d106fbec269610ba8ce5ca85fbd67c094282"
+content-hash = "a2c584733dda024d398ece3bf8b91eae580ee405e275e9006ffb2ed903c43d9d"

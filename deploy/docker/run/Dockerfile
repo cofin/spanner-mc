@@ -7,15 +7,13 @@ FROM python:${PYTHON_BUILDER_IMAGE} as python-base
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
-WORKDIR /workspace/app
-
-## -------------------------- add common compiled libraries --------------------------- ##
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends git tini \
@@ -24,11 +22,10 @@ RUN apt-get update \
     && rm -rf /root/.cache \
     && rm -rf /var/apt/lists/* \
     && rm -rf /var/cache/apt/* \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
-RUN mkdir -p /workspace/app \
-    && addgroup --system --gid 65532 nonroot \
-    && adduser --no-create-home --system --uid 65532 nonroot \
-    && chown -R nonroot:nonroot /workspace
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && mkdir -p /workspace/app \
+    && pip install --quiet -U pip wheel setuptools virtualenv
+
 
 ## ---------------------------------------------------------------------------------- ##
 ## ------------------------- Python build base -------------------------------------- ##
@@ -44,7 +41,17 @@ ENV POETRY_HOME="/opt/poetry" \
     POETRY_VERSION='1.5.1' \
     POETRY_INSTALL_ARGS="${POETRY_INSTALL_ARGS}" \
     GRPC_PYTHON_BUILD_WITH_CYTHON=1 \
-    PATH="/workspace/app/.venv/bin:/usr/local/bin:$PATH"
+    PATH="/workspace/app/.venv/bin:/usr/local/bin:$PATH" \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 ## -------------------------- add build packages ----------------------------------- ##
 RUN apt-get install -y --no-install-recommends build-essential curl \
     && apt-get autoremove -y \
@@ -52,19 +59,19 @@ RUN apt-get install -y --no-install-recommends build-essential curl \
     && rm -rf /root/.cache \
     && rm -rf /var/apt/lists/* \
     && rm -rf /var/cache/apt/* \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
-
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && curl -sSL https://install.python-poetry.org | python - \
+    && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 ## -------------------------- install application ----------------------------------- ##
 WORKDIR /workspace/app
-RUN curl -sSL https://install.python-poetry.org | python - \
-    && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 COPY pyproject.toml poetry.lock README.md LICENSE Makefile \
     ./
-RUN python -m venv --copies /workspace/app/.venv
-RUN /workspace/app/.venv/bin/pip install -U cython \
-    && poetry install $POETRY_INSTALL_ARGS --no-root
+RUN python -m venv --copies /workspace/app/.venv \
+    && /workspace/app/.venv/bin/pip install --quiet cython  \
+    && poetry install ${POETRY_INSTALL_ARGS} --no-root --quiet \
+    && poetry export ${POETRY_INSTALL_ARGS} --quiet --without-hashes --output=requirements.txt
 COPY spannermc ./spannermc/
-RUN poetry build
+RUN poetry build --quiet
 
 ## ---------------------------------------------------------------------------------- ##
 ## -------------------------------- runtime build ----------------------------------- ##
@@ -73,12 +80,27 @@ RUN poetry build
 
 FROM python-base as run-image
 ARG ENV_SECRETS="runtime-secrets"
-ENV ENV_SECRETS="${ENV_SECRETS}"
+ENV ENV_SECRETS="${ENV_SECRETS}" \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+RUN addgroup --system --gid 65532 nonroot \
+    && adduser --no-create-home --system --uid 65532 nonroot \
+    && chown -R nonroot:nonroot /workspace
 ## -------------------------- install application ----------------------------------- ##
+COPY --from=build-base --chown=65532:65532 /workspace/app/requirements.txt /tmp/requirements.txt
 COPY --from=build-base --chown=65532:65532 /workspace/app/dist /tmp/
 WORKDIR /workspace/app
-RUN pip install -U cython setuptools wheel
-RUN pip install /tmp/*.whl
+RUN pip install cython setuptools wheel pip \
+    && pip install --quiet --disable-pip-version-check --no-deps --requirement=/tmp/requirements.txt
+RUN pip install --quiet --disable-pip-version-check --no-deps /tmp/*.whl
 USER nonroot
 STOPSIGNAL SIGINT
 EXPOSE 8000/tcp
