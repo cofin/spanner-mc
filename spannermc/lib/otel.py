@@ -49,6 +49,7 @@ meter_provider = MeterProvider(
 )
 
 metrics.set_meter_provider(meter_provider)
+metrics.get_meter_provider().start_pipeline(metrics.get_meter(__name__), CloudMonitoringMetricsExporter(), 5)  # type: ignore[attr-defined]
 # Create and export one trace every 100 requests
 _sampler = ParentBasedTraceIdRatio(1 / 250)
 tracer_provider = TracerProvider(resource=_resources, sampler=_sampler)
