@@ -2,6 +2,8 @@ import logging
 import random
 import string
 
+import google.auth.transport.requests
+import google.oauth2.id_token
 from faker import Faker
 from locust import FastHttpUser, task
 from locust.exception import RescheduleTask
@@ -13,12 +15,18 @@ logger = log.get_logger()
 fake = Faker()
 
 
+def get_id_token(audience: str | None = None) -> str:
+    """Get an ID token for making service requests."""
+    auth_req = google.auth.transport.requests.Request()
+    return google.oauth2.id_token.fetch_id_token(auth_req, audience)
+
+
 class WebsiteTestUser(FastHttpUser):
     network_timeout = 30.0
     connection_timeout = 30.0
 
     def __init__(self, environment):
-        self.host = "http://3.84.139.173:8000/"
+        self.id_token = get_id_token(self.host)
         super().__init__(environment)
 
     @staticmethod
@@ -68,7 +76,10 @@ class WebsiteTestUser(FastHttpUser):
         logging.debug("get_token: for email = %s, access_token = %s", email, access_token)
 
         # set headers with access token
-        self.headers = {"Authorization": f"Bearer {access_token}"}
+        self.headers = {
+            "Authorization": f"Bearer {access_token}",
+            "X-Serverless-Authorization": f"Bearer {self.id_token}",
+        }
 
     def on_stop(self):
         pass
@@ -136,3 +147,4 @@ class WebsiteTestUser(FastHttpUser):
                 logging.error(error_msg)
                 response.failure(error_msg)
                 raise RescheduleTask()
+
