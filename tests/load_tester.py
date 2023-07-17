@@ -1,7 +1,9 @@
 import logging
+import os
 import random
 import string
 
+import dotenv
 import google.auth.transport.requests
 import google.oauth2.id_token
 from faker import Faker
@@ -14,6 +16,8 @@ logger = log.get_logger()
 
 fake = Faker()
 
+dotenv.load_dotenv(".env")
+
 
 def get_id_token(audience: str | None = None) -> str:
     """Get an ID token for making service requests."""
@@ -21,12 +25,15 @@ def get_id_token(audience: str | None = None) -> str:
     return google.oauth2.id_token.fetch_id_token(auth_req, audience)
 
 
+id_token = get_id_token(os.environ.get("TEST_TOKEN_AUDIENCE", "http://localhost:8000/"))
+
+
 class WebsiteTestUser(FastHttpUser):
     network_timeout = 30.0
     connection_timeout = 30.0
 
     def __init__(self, environment):
-        self.id_token = get_id_token(self.host)
+        self.id_token = id_token
         super().__init__(environment)
 
     @staticmethod
@@ -60,6 +67,7 @@ class WebsiteTestUser(FastHttpUser):
         response = self.client.post(
             register_url,
             json={"email": email, "password": password, "name": name},
+            headers={"X-Serverless-Authorization": f"Bearer {self.id_token}"},
         )
         if response.status_code != 201:
             error_msg = f"register: response.status_code = {response.status_code}, expected 201"
@@ -71,6 +79,7 @@ class WebsiteTestUser(FastHttpUser):
         response = self.client.post(
             get_token_url,
             data={"username": email, "password": password},
+            headers={"X-Serverless-Authorization": f"Bearer {self.id_token}"},
         )
         access_token = response.json()["access_token"]
         logging.debug("get_token: for email = %s, access_token = %s", email, access_token)
@@ -147,4 +156,3 @@ class WebsiteTestUser(FastHttpUser):
                 logging.error(error_msg)
                 response.failure(error_msg)
                 raise RescheduleTask()
-
