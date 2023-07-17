@@ -41,17 +41,14 @@ meter_provider = MeterProvider(
     metric_readers=[
         PeriodicExportingMetricReader(
             CloudMonitoringMetricsExporter(add_unique_identifier=True),
-            export_interval_millis=15000,
-            export_timeout_millis=45000,
         )
     ],
     resource=_resources,
 )
 
 metrics.set_meter_provider(meter_provider)
-metrics.get_meter_provider().start_pipeline(metrics.get_meter(__name__), CloudMonitoringMetricsExporter(), 5)  # type: ignore[attr-defined]
 # Create and export one trace every 100 requests
-_sampler = ParentBasedTraceIdRatio(1 / 250)
+_sampler = ParentBasedTraceIdRatio(1 / 25)
 tracer_provider = TracerProvider(resource=_resources, sampler=_sampler)
 trace.set_tracer_provider(tracer_provider)
 trace.get_tracer_provider().add_span_processor(  # type: ignore[attr-defined]
