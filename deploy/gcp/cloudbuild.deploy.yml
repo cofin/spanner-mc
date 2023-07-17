@@ -66,6 +66,8 @@ steps:
         "${_MEMORY_SIZE}",
         "--max-instances",
         "${_MAX_INSTANCES}",
+        "--min-instances",
+        "1",
         "--cpu",
         "1",
         "--port",
@@ -77,4 +79,7 @@ steps:
         "--allow-unauthenticated",
         "--execution-environment",
         "gen2",
+        "--no-cpu-throttling",
+        "--vpc-connector",
+        "projects/${_PROJECT_ID}/locations/${_REGION_NAME}/connectors/${_VPC_NAME}",
       ]
