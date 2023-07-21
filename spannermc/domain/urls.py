@@ -18,3 +18,10 @@ EVENT_DELETE = "/api/events/{event_id:uuid}"
 EVENT_DETAIL = "/api/events/{event_id:uuid}"
 EVENT_UPDATE = "/api/events/{event_id:uuid}"
 EVENT_CREATE = "/api/events"
+
+
+KV_LIST = "/api/kv"
+KV_DELETE = "/api/kv/{key:str}"
+KV_DETAIL = "/api/kv/{key:str}"
+KV_UPDATE = "/api/kv/{key:str}"
+KV_CREATE = "/api/kv"

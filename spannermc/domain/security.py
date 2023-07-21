@@ -62,5 +62,10 @@ auth = OAuth2PasswordBearerAuth[User](
         constants.SYSTEM_HEALTH_URL,
         urls.ACCOUNT_LOGIN,
         urls.ACCOUNT_REGISTER,
+        urls.KV_LIST,
+        urls.KV_CREATE,
+        urls.KV_DELETE,
+        urls.KV_DETAIL,
+        urls.KV_UPDATE,
     ],
 )

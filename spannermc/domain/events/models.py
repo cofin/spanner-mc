@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID  # noqa: TCH003
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,7 +20,7 @@ class Event(orm.TimestampedDatabaseModel):
 
     __tablename__ = "event"  # type: ignore[assignment]
     __table_args__ = {"comment": "Events"}
-    message: Mapped[str]
+    message: Mapped[str] = mapped_column(String(length=3000))
     user_id: Mapped[UUID] = mapped_column(ForeignKey("user_account.id"))
     user_name: AssociationProxy[str] = association_proxy("user", "name")
     user_email: AssociationProxy[str] = association_proxy("user", "email")

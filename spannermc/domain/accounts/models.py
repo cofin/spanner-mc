@@ -23,8 +23,8 @@ class User(orm.TimestampedDatabaseModel):
         Index("uk_user_account_email", "email", unique=True),
         {"comment": "User accounts for application access"},
     )
-    email: Mapped[str]
-    name: Mapped[str | None]
+    email: Mapped[str] = mapped_column(String(length=255), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(length=100))
     hashed_password: Mapped[str | None] = mapped_column(String(length=255), info=dto.dto_field("private"))
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)

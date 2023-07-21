@@ -13,7 +13,7 @@ from litestar.types import TypeEncodersMap
 from spannermc.domain.accounts.models import User
 from spannermc.lib.service.generic import Service
 
-from . import accounts, events, openapi, security, system, urls
+from . import accounts, events, kv, openapi, security, system, urls
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -27,6 +27,7 @@ routes: list[ControllerRouterHandler] = [
     accounts.controllers.AccountController,
     events.controllers.EventController,
     system.controllers.SystemController,
+    kv.controllers.KVStoreController,
 ]
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "security",
     "routes",
     "openapi",
+    "kv",
     "signature_namespace",
 ]
 
