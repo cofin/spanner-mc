@@ -3,6 +3,9 @@ from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO
 from spannermc.domain.events.models import Event
 from spannermc.lib import dto
 
+__all__ = ["EventDTO", "EventModifyDTO"]
+
+
 # database model
 
 

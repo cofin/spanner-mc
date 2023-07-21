@@ -18,8 +18,7 @@ from litestar.testing import RequestFactory
 from litestar.utils.scope import set_litestar_scope_state
 from structlog import DropEvent
 
-from spannermc.domain import urls
-from spannermc.lib import log, settings
+from spannermc.lib import constants, log, settings
 
 try:
     import re2 as re  # pyright: ignore
@@ -55,7 +54,7 @@ def test_drop_health_logs_raises_structlog_drop_event() -> None:
             "abc",
             {
                 "event": settings.log.HTTP_EVENT,
-                "request": {"path": urls.SYSTEM_HEALTH},
+                "request": {"path": constants.SYSTEM_HEALTH_URL},
                 "response": {"status_code": HTTP_200_OK},
             },
         )
@@ -65,7 +64,7 @@ def test_drop_health_log_no_drop_event_if_not_success_status() -> None:
     """Healthcheck should be logged if it fails."""
     event_dict = {
         "event": settings.log.HTTP_EVENT,
-        "request": {"path": urls.SYSTEM_HEALTH},
+        "request": {"path": constants.SYSTEM_HEALTH_URL},
         "response": {"status_code": HTTP_500_INTERNAL_SERVER_ERROR},
     }
     assert event_dict == log.controller.drop_health_logs(None, "abc", event_dict)

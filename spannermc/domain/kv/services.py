@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from spannermc.lib.repository import SQLAlchemySyncRepository
+from litestar.contrib.sqlalchemy.repository import SQLAlchemySyncRepository
+
 from spannermc.lib.service.sqlalchemy import SQLAlchemySyncRepositoryService
 
 from .models import KVStore

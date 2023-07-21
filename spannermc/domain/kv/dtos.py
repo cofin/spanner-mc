@@ -3,6 +3,8 @@ from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO
 from spannermc.domain.kv.models import KVStore
 from spannermc.lib import dto
 
+__all__ = ["KVStoreCreateDTO", "KVStoreUpdateDTO", "KeyValueStoreDTO"]
+
 
 class KeyValueStoreDTO(SQLAlchemyDTO[KVStore]):
     config = dto.config(
