@@ -15,6 +15,7 @@ database = "spannermc.cli:database_management_app"
 users = "spannermc.cli:user_management_app"
 
 [tool.poetry.dependencies]
+alembic = "*"
 google-api-core = "*"
 google-cloud-secret-manager = "*"
 google-re2 = {version = ">=1.0", platform = 'linux'}
@@ -32,7 +33,7 @@ passlib = {version = "*", extras = ["argon2"]}
 pydantic-settings = "*"
 python = ">=3.11,<3.12"
 python-dotenv = "*"
-sqlalchemy = {git = "https://github.com/sqlalchemy/sqlalchemy.git", branch = "main"}
+sqlalchemy = '*'
 sqlalchemy-spanner = "*"
 uvicorn = {version = "*", extras = ['standard']}
 uvloop = "*"

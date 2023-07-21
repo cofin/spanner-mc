@@ -1,22 +1,20 @@
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO
-from litestar.dto.factory import DTOConfig, dto_field
-from litestar.dto.factory.stdlib.dataclass import DataclassDTO
+from litestar.dto import DataclassDTO, DTOConfig, dto_field
 
 if TYPE_CHECKING:
     from collections.abc import Set
 
-    from litestar.dto.types import RenameStrategy
+    from litestar.dto import RenameStrategy
 
 __all__ = ["config", "dto_field", "DTOConfig", "SQLAlchemyDTO", "DataclassDTO"]
 
 
-@lru_cache
 def config(
+    include: Set[str] | None = None,
     exclude: Set[str] | None = None,
     rename_fields: dict[str, str] | None = None,
     rename_strategy: RenameStrategy | None = None,
@@ -28,8 +26,12 @@ def config(
         DTOConfig: Configured DTO class
     """
     default_kwargs = {"rename_strategy": "camel", "max_nested_depth": 2}
-    exclude = {"sa_orm_sentinel"} if exclude is None else set(exclude).union({"sa_orm_sentinel"})
-    default_kwargs.update({"exclude": exclude})
+    if include is not None:
+        include = set() if include is None else include
+        default_kwargs.update({"include": include})
+    else:
+        exclude = {"sa_orm_sentinel"} if exclude is None else set(exclude).union({"sa_orm_sentinel"})
+        default_kwargs.update({"exclude": exclude})
     if rename_fields:
         default_kwargs.update({"rename_fields": rename_fields})
     if rename_strategy:

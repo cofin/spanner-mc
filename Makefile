@@ -106,3 +106,9 @@ deploy:												## Deploy to cloudrun
 
 	@echo "=> Deploying to Google CloudRun..."
 	source ./.gcloud.env && gcloud config set project $$_PROJECT_ID && gcloud builds submit --config=deploy/gcp/cloudbuild.deploy.yml  --substitutions=_PROJECT_ID="$$_PROJECT_ID",_REGION_NAME="$$_REGION_NAME",_SERVICE_NAME="$$_SERVICE_NAME",_SERVICE_ACCOUNT="$$_SERVICE_ACCOUNT",_VPC_NAME="$$_VPC_NAME",_ENV_SECRETS="$$_ENV_SECRETS",_MEMORY_SIZE="$$_MEMORY_SIZE",_MAX_INSTANCES="$$_MAX_INSTANCES",BRANCH_NAME="main",SHORT_SHA="$$(git rev-parse --short HEAD)"
+
+.PHONY: proxy
+proxy:												## start proxt to cloudrun
+
+	@echo "=> Starting Google CloudRun Proxt..."
+	source ./.gcloud.env && gcloud config set project $$_PROJECT_ID && gcloud beta run services proxy $$_SERVICE_NAME --project $$_PROJECT_ID --port 8083 --region $$_REGION_NAME

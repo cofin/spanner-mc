@@ -6,10 +6,6 @@ from opentelemetry.exporter.cloud_monitoring import (
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.cloud_trace_propagator import (
-    CloudTraceFormatPropagator,
-)
 from opentelemetry.resourcedetector.gcp_resource_detector import GoogleCloudResourceDetector
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
@@ -45,14 +41,12 @@ meter_provider = MeterProvider(
 
 metrics.set_meter_provider(meter_provider)
 # Create and export one trace every 100 requests
-_sampler = ParentBasedTraceIdRatio(1 / 25)
+_sampler = ParentBasedTraceIdRatio(1 / 100)
 tracer_provider = TracerProvider(resource=_resources, sampler=_sampler)
 trace.set_tracer_provider(tracer_provider)
 trace.get_tracer_provider().add_span_processor(  # type: ignore[attr-defined]
     BatchSpanProcessor(CloudTraceSpanExporter(), max_queue_size=10000)  # type: ignore
 )
-
-set_global_textmap(CloudTraceFormatPropagator())
 GrpcInstrumentorClient().instrument()  # type: ignore[no-untyped-call]
 SQLAlchemyInstrumentor().instrument(engine=db.engine)
 config = OpenTelemetryConfig(

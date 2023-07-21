@@ -9,9 +9,10 @@ from litestar.params import Dependency, Parameter
 
 from spannermc.domain import urls
 from spannermc.domain.accounts.models import User
-from spannermc.domain.events import schemas
 from spannermc.domain.events.dependencies import provides_event_service
+from spannermc.domain.events.dtos import EventDTO, EventModifyDTO
 from spannermc.domain.events.guards import requires_event_ownership
+from spannermc.domain.events.models import Event
 from spannermc.domain.events.services import EventService
 from spannermc.lib import log
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from litestar.contrib.repository.filters import FilterTypes
+    from litestar.dto import DTOData
     from litestar.pagination import OffsetPagination
 
 
@@ -33,7 +35,8 @@ class EventController(Controller):
 
     tags = ["Event"]
     dependencies = {"events_service": Provide(provides_event_service)}
-    signature_namespace = {"EventService": EventService, "User": User}
+    signature_namespace = {"EventService": EventService, "User": User, "Event": Event}
+    return_dto = EventDTO
 
     @get(
         operation_id="ListEvents",
@@ -45,10 +48,10 @@ class EventController(Controller):
     )
     def list_events(
         self, events_service: EventService, filters: list[FilterTypes] = Dependency(skip_validation=True)
-    ) -> OffsetPagination[schemas.Event]:
+    ) -> OffsetPagination[Event]:
         """List events."""
         results, total = events_service.list_and_count(*filters)
-        return events_service.to_schema(schemas.Event, results, total, *filters)
+        return events_service.to_dto(results, total, *filters)
 
     @get(
         operation_id="GetEvent",
@@ -64,10 +67,10 @@ class EventController(Controller):
             title="Event ID",
             description="The event to retrieve.",
         ),
-    ) -> schemas.Event:
+    ) -> Event:
         """Get a event."""
         db_obj = events_service.get(event_id)
-        return events_service.to_schema(schemas.Event, db_obj)
+        return events_service.to_dto(db_obj)
 
     @post(
         operation_id="CreateEvent",
@@ -77,18 +80,19 @@ class EventController(Controller):
         description="A event.",
         path=urls.EVENT_CREATE,
         sync_to_thread=False,
+        dto=EventModifyDTO,
     )
     def create_event(
         self,
         events_service: EventService,
         current_user: User,
-        data: schemas.EventCreate,
-    ) -> schemas.Event:
+        data: DTOData[Event],
+    ) -> Event:
         """Create a new event."""
-        obj = data.dict(exclude_unset=True, by_alias=False, exclude_none=True)
-        obj.update({"user_id": current_user.id})
+        obj = data.as_builtins()
+        obj.update({"owner_id": current_user.id})
         db_obj = events_service.create(obj)
-        return events_service.to_schema(schemas.Event, db_obj)
+        return events_service.to_dto(db_obj)
 
     @patch(
         operation_id="UpdateEvent",
@@ -96,19 +100,20 @@ class EventController(Controller):
         path=urls.EVENT_UPDATE,
         guards=[requires_event_ownership],
         sync_to_thread=False,
+        dto=EventModifyDTO,
     )
     def update_event(
         self,
-        data: schemas.EventUpdate,
+        data: DTOData[Event],
         events_service: EventService,
         event_id: UUID = Parameter(
             title="Event ID",
             description="The event to update.",
         ),
-    ) -> schemas.Event:
+    ) -> Event:
         """Create a new event."""
-        db_obj = events_service.update(event_id, data.dict(exclude_unset=True, by_alias=False, exclude_none=True))
-        return events_service.to_schema(schemas.Event, db_obj)
+        db_obj = events_service.update(event_id, data.as_builtins())
+        return events_service.to_dto(db_obj)
 
     @delete(
         operation_id="DeleteEvent",
@@ -118,6 +123,7 @@ class EventController(Controller):
         description="Removes a event and all associated data from the system.",
         guards=[requires_event_ownership],
         sync_to_thread=False,
+        return_dto=None,
     )
     def delete_event(
         self,

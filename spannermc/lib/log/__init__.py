@@ -48,6 +48,7 @@ else:
     LoggerFactory = structlog.BytesLoggerFactory
     default_processors.extend(
         [
+            controller.add_open_telemetry_spans,
             controller.add_google_cloud_attributes,
             structlog.processors.EventRenamer("message"),
             msgspec_json_renderer,
@@ -55,6 +56,7 @@ else:
     )
     stdlib_processors.extend(
         [
+            controller.add_open_telemetry_spans,
             controller.add_google_cloud_attributes,
             structlog.processors.EventRenamer("message"),
         ],

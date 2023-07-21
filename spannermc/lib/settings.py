@@ -45,7 +45,7 @@ class ServerSettings(BaseSettings):
     """Server network host."""
     KEEPALIVE: int = 65
     """Seconds to hold connections open (65 is > AWS lb idle timeout)."""
-    PORT: int = 8080
+    PORT: int = 8000
     """Server port."""
     RELOAD: bool | None = None
     """Turn on hot reloading."""
@@ -260,7 +260,7 @@ def get_settings(
     Returns:
         Settings: _description_
     """
-    active_cloud = os.environ.get("CLOUD", "local")
+    os.environ.get("CLOUD", "local")
     secret_id = os.environ.get("ENV_SECRETS", None)
     env_file_exists = Path(f"{os.curdir}/.env").is_file()
     os.environ["LITESTAR_PORT"] = "8000"
@@ -275,14 +275,6 @@ def get_settings(
         logger.info("loading environment from Google Secrets")
         secret = gcp_secret_manager.get_secret(project_id, secret_id)
         load_dotenv(stream=io.StringIO(secret))
-    elif active_cloud == "aws":
-        logger.info("loading environment from AWS Secrets")
-
-        from spannermc.lib.cloud import aws as aws_secret_manager
-
-        if not env_file_exists and secret_id:
-            secret = aws_secret_manager.get_secret(secret_id)
-            load_dotenv(stream=io.StringIO(secret))
 
     try:
         app: AppSettings = AppSettings()
