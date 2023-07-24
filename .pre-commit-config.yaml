@@ -11,7 +11,7 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.278"
+    rev: "v0.0.280"
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -56,12 +56,11 @@ repos:
             rich-click,
             polyfactory,
             structlog,
-            aiosmtplib,
+            sqlalchemy,
             alembic,
             httpx,
             pytest,
             pytest-docker,
-            saq,
             https://github.com/litestar-org/litestar/archive/refs/heads/main.zip,
             types-freezegun,
             types-python-jose,
@@ -69,4 +68,19 @@ repos:
             types-passlib,
             types-PyYAML,
             uvicorn,
+            uvloop,
+            opentelemetry-api,
+            opentelemetry-exporter-gcp-monitoring,
+            opentelemetry-exporter-gcp-trace,
+            opentelemetry-instrumentation,
+            opentelemetry-instrumentation-grpc,
+            opentelemetry-instrumentation-sqlalchemy,
+            opentelemetry-propagator-gcp,
+            opentelemetry-resourcedetector-gcp,
+            opentelemetry-sdk,
+            sqlalchemy-spanner,
+            google-re2,
+            google-cloud-secret-manager,
+            pydantic-settings,
+            python-dotenv,
           ]

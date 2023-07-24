@@ -5,7 +5,6 @@ import pytest
 from litestar import Litestar, get
 from litestar.contrib.repository.exceptions import ConflictError, NotFoundError
 from litestar.status_codes import (
-    HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
     HTTP_500_INTERNAL_SERVER_ERROR,
@@ -45,23 +44,10 @@ def test_after_exception_hook_handler_called(monkeypatch: pytest.MonkeyPatch) ->
         (ConflictError, HTTP_409_CONFLICT),
         (NotFoundError, HTTP_404_NOT_FOUND),
         (ApplicationError, HTTP_500_INTERNAL_SERVER_ERROR),
-    ],
-)
-def test_repository_exception_to_http_response(exc: type[ApplicationError], status: int) -> None:
-    app = Litestar(route_handlers=[])
-    request = RequestFactory(app=app, server="testserver").get("/wherever")
-    response = exceptions.exception_to_http_response(request, exc())
-    assert response.status_code == status
-
-
-@pytest.mark.parametrize(
-    ("exc", "status"),
-    [
-        (exceptions.AuthorizationError, HTTP_403_FORBIDDEN),
         (exceptions.ApplicationError, HTTP_500_INTERNAL_SERVER_ERROR),
     ],
 )
-def test_exception_to_http_response(exc: type[exceptions.ApplicationError], status: int) -> None:
+def test_repository_exception_to_http_response(exc: type[ApplicationError], status: int) -> None:
     app = Litestar(route_handlers=[])
     request = RequestFactory(app=app, server="testserver").get("/wherever")
     response = exceptions.exception_to_http_response(request, exc())

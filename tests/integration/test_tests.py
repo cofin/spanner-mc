@@ -9,7 +9,6 @@ from spannermc.lib import db
 if TYPE_CHECKING:
     from litestar import Litestar
     from sqlalchemy import Engine
-    from sqlalchemy.ext.asyncio import AsyncEngine
 
 
 def test_engine_on_app(app: "Litestar", engine: "Engine") -> None:
@@ -33,7 +32,7 @@ def test_sessionmaker(app: "Litestar", sessionmaker: "sessionmaker[Session]") ->
     assert db.base.session_factory is sessionmaker
 
 
-async def test_db_session_dependency(app: "Litestar", engine: "AsyncEngine") -> None:
+async def test_db_session_dependency(app: "Litestar", engine: "Engine") -> None:
     """Test that handlers receive session attached to patched engine.
 
     Args:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, cast
 
-from google.cloud import spanner
+from google.cloud import spanner  # type: ignore[attr-defined]
 from litestar.contrib.sqlalchemy.plugins.init.config import (
     SQLAlchemySyncConfig,
 )

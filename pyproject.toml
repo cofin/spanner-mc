@@ -50,7 +50,6 @@ pre-commit = "*"
 pytest = "*"
 pytest-asyncio = "*"
 pytest-cov = "*"
-pytest-docker = "*"
 pytest-dotenv = "*"
 pytest-mock = "*"
 ruff = '*'
@@ -260,3 +259,24 @@ module = "tests.*"
 strict = false
 warn_return_any = false
 warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "google.protobuf.*",
+  "google.auth",
+  "google.cloud.*",
+  "pyarrow.*",
+  "fsspec.*",
+  "gcsfs.*",
+  "re2.*",
+  "sqlalchemy.*",
+  "uvicorn.*",
+]
+
+[[tool.mypy.overrides]]
+ignore_errors = true
+module = ["spannermc.lib.db.migrations.*"]
+
+[tool.pyright]
+include = ["spannermc", "tests"]

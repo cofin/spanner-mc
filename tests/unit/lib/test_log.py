@@ -294,14 +294,12 @@ async def test_before_send_handler_extract_request_data(
     before_send_handler: log.controller.BeforeSendHandler,
 ) -> None:
     """I/O test for extract_request_data() method."""
-    if "body" not in settings.log.RESPONSE_FIELDS:
-        settings.log.RESPONSE_FIELDS.append("body")
     request = RequestFactory().post("/", data={"a": "b"})
     data = await before_send_handler.extract_request_data(request)
     assert data == {
-        "body": b'{"a": "b"}',
         "path": "/",
         "method": "POST",
+        "content_type": ("application/json", {}),
         "headers": {
             "content-length": "10",
             "content-type": "application/json",

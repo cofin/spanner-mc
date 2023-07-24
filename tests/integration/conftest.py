@@ -1,113 +1,50 @@
-import asyncio
-import contextlib
 import os
-import timeit
-from collections.abc import AsyncIterator, Iterator
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+import sys
+from collections.abc import AsyncIterator, Generator, Iterator
+from typing import Any
 
 import pytest
-from google.auth.credentials import AnonymousCredentials
-from google.cloud import spanner
 from httpx import AsyncClient
 from litestar import Litestar
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker
 
 from spannermc.domain.accounts.models import User
 from spannermc.domain.security import auth
 from spannermc.lib import db
-
-if TYPE_CHECKING:
-    from collections import abc
-
-    from pytest_docker.plugin import Services
-
-
-here = Path(__file__).parent
+from tests.docker_service import DockerServiceRegistry, spanner_responsive
 
 
 @pytest.fixture(scope="session")
-def docker_compose_file() -> Path:
-    """Load docker compose file.
+def docker_services() -> Generator[DockerServiceRegistry, None, None]:
+    if sys.platform not in ("linux", "darwin") or os.environ.get("SKIP_DOCKER_TESTS"):
+        pytest.skip("Docker not available on this platform")
 
-    Returns:
-        Path to the docker-compose file for end-to-end test environment.
-    """
-    return here / "docker-compose.yml"
-
-
-async def wait_until_responsive(
-    check: "abc.Callable[..., abc.Awaitable]",
-    timeout: float,
-    pause: float,
-    **kwargs: Any,
-) -> None:
-    """Wait until a service is responsive.
-
-    Args:
-        check: Coroutine, return truthy value when waiting should stop.
-        timeout: Maximum seconds to wait.
-        pause: Seconds to wait between calls to `check`.
-        **kwargs: Given as kwargs to `check`.
-    """
-    ref = timeit.default_timer()
-    now = ref
-    while (now - ref) < timeout:
-        if await check(**kwargs):
-            return
-        await asyncio.sleep(pause)
-        now = timeit.default_timer()
-
-    raise Exception("Timeout reached while waiting on service!")
-
-
-async def db_responsive(host: str) -> bool:
-    """Args:
-        host: docker IP address.
-
-    Returns:
-        Boolean indicating if we can connect to the database.
-    """
+    registry = DockerServiceRegistry()
     try:
-        os.environ["SPANNER_EMULATOR_HOST"] = "localhost:9010"
-        os.environ["GOOGLE_CLOUD_PROJECT"] = "emulator-test-project"
-        spanner_client = spanner.Client(project="emulator-test-project", credentials=AnonymousCredentials())
-        instance = spanner_client.instance("test-instance")
-        with contextlib.suppress(Exception):
-            instance.create()
-
-        database = instance.database("test-database")
-        with contextlib.suppress(Exception):
-            database.create()
-
-        with database.snapshot() as snapshot:
-            resp = list(snapshot.execute_sql("SELECT 1"))[0]
-        return resp[0] == 1
-    except Exception:  # noqa: BLE001
-        return False
+        yield registry
+    finally:
+        registry.down()
 
 
-@pytest.fixture(scope="session", autouse=True)
-async def _containers(docker_ip: str, docker_services: "Services") -> None:  # pylint: disable=unused-argument
-    """Starts containers for required services, fixture waits until they are
-    responsive before returning.
+@pytest.fixture(scope="session")
+def docker_ip(docker_services: DockerServiceRegistry) -> str:
+    return docker_services.docker_ip
 
-    Args:
-        docker_ip: the test docker IP
-        docker_services: the test docker services
-    """
-    await wait_until_responsive(timeout=30.0, pause=0.1, check=db_responsive, host=docker_ip)
+
+@pytest.fixture()
+async def spanner_service(docker_services: DockerServiceRegistry) -> None:
+    await docker_services.start("spanner", check=spanner_responsive)  # type: ignore
 
 
 @pytest.fixture(name="engine")
-def fx_engine(docker_ip: str, monkeypatch: pytest.MonkeyPatch) -> Engine:
+def fx_engine(docker_ip: str, monkeypatch: pytest.MonkeyPatch, spanner_service: None) -> Engine:
     """Postgresql instance for end-to-end testing.
 
     Args:
         docker_ip: IP address for TCP connection to Docker containers.
         monkeypatch: monkeypatch class
+        spanner_service: Use the spanner service fixture
     Returns:
         Async SQLAlchemy engine instance.
     """
@@ -161,17 +98,17 @@ def _seed_db(
 @pytest.fixture(autouse=True)
 def _patch_db(
     app: "Litestar",
-    engine: AsyncEngine,
-    sessionmaker: async_sessionmaker[AsyncSession],
+    engine: Engine,
+    sessionmaker: sessionmaker[Session],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(db, "async_session_factory", sessionmaker)
-    monkeypatch.setattr(db.base, "async_session_factory", sessionmaker)
+    monkeypatch.setattr(db, "session_factory", sessionmaker)
+    monkeypatch.setattr(db.base, "session_factory", sessionmaker)
     monkeypatch.setitem(app.state, db.config.engine_app_state_key, engine)
     monkeypatch.setitem(
         app.state,
         db.config.session_maker_app_state_key,
-        async_sessionmaker(bind=engine, expire_on_commit=False),
+        sessionmaker(bind=engine, expire_on_commit=False),
     )
 
 

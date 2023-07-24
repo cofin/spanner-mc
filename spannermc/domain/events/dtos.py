@@ -11,13 +11,13 @@ __all__ = ["EventDTO", "EventModifyDTO"]
 
 class EventDTO(SQLAlchemyDTO[Event]):
     config = dto.config(
-        exclude=("user"),
+        exclude={"user"},
         max_nested_depth=0,
     )
 
 
 class EventModifyDTO(SQLAlchemyDTO[Event]):
     config = dto.config(
-        include=("message"),
+        include={"message"},
         max_nested_depth=0,
     )

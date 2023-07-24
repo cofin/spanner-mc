@@ -28,7 +28,7 @@ def get_id_token(audience: str | None = None) -> str:
 id_token = get_id_token(os.environ.get("TEST_TOKEN_AUDIENCE", "http://localhost:8000/"))
 
 
-class WebsiteTestUser(FastHttpUser):
+class WebsiteTestUser(FastHttpUser):  # type: ignore
     network_timeout = 30.0
     connection_timeout = 30.0
 
