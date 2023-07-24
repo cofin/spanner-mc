@@ -89,19 +89,19 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
         data = [(self.to_model(datum, "create")) for datum in data]
         return self.repository.add_many(data)
 
-    def update(self, item_id: Any, data: ModelT | dict[str, Any]) -> ModelT:
+    def update(self, item_id: Any, data: ModelT | dict[str, Any], id_attribute: str | None = None) -> ModelT:
         """Wrap repository update operation.
 
         Args:
             item_id: Identifier of item to be updated.
             data: Representation to be updated.
+            id_attribute: Optionally override the identity column to use.
 
         Returns:
             Updated representation.
         """
         data = self.to_model(data, "update")
-        self.repository.set_id_attribute_value(item_id, data)
-        return self.repository.update(data)
+        return self.repository.update(data, id_attribute=id_attribute)
 
     def update_many(
         self, data: list[ModelT | dict[str, Any]] | list[dict[str, Any]] | list[ModelT]
@@ -194,27 +194,27 @@ class SQLAlchemySyncRepositoryService(Service[ModelT], Generic[ModelT]):
         """
         return self.repository.get_one_or_none(**kwargs)
 
-    def delete(self, item_id: Any) -> ModelT:
+    def delete(self, item_id: Any, **kwargs: Any) -> ModelT:
         """Wrap repository delete operation.
 
         Args:
             item_id: Identifier of instance to be deleted.
-
+            **kwargs: delete overrides
         Returns:
             Representation of the deleted instance.
         """
-        return self.repository.delete(item_id)
+        return self.repository.delete(item_id, **kwargs)
 
-    def delete_many(self, item_ids: list[Any]) -> Sequence[ModelT]:
+    def delete_many(self, item_ids: list[Any], **kwargs: Any) -> Sequence[ModelT]:
         """Wrap repository bulk instance deletion.
 
         Args:
             item_ids: IDs to be removed.
-
+            **kwargs: delete many overrides
         Returns:
             Representation of removed instances.
         """
-        return self.repository.delete_many(item_ids)
+        return self.repository.delete_many(item_ids, **kwargs)
 
     def to_model(self, data: ModelT | dict[str, Any], operation: str | None = None) -> ModelT:
         """Parse and Convert input into a model.

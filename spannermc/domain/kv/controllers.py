@@ -63,13 +63,13 @@ class KVStoreController(Controller):
     def get_kv(
         self,
         kv_service: KVStoreService,
-        kv_key: UUID = Parameter(
-            title="KeyValueStore ID",
-            description="The kv to retrieve.",
+        kv_key: str = Parameter(
+            title="Key",
+            description="The key to retrieve.",
         ),
     ) -> KVStore:
         """Get a kv."""
-        db_obj = kv_service.get_one(key=kv_key)
+        db_obj = kv_service.get(kv_key, id_attribute="key")
         return kv_service.to_dto(db_obj)
 
     @post(
@@ -111,8 +111,7 @@ class KVStoreController(Controller):
         ),
     ) -> KVStore:
         """Create a new kv."""
-        db_obj = kv_service.get_one(key=kv_key)
-        db_obj = kv_service.update(db_obj.id, data.create_instance())
+        db_obj = kv_service.update(kv_key, data.create_instance(), id_attribute="key")
         return kv_service.to_dto(db_obj)
 
     @delete(
@@ -134,4 +133,4 @@ class KVStoreController(Controller):
         ),
     ) -> None:
         """Delete a kv from the system."""
-        _ = kv_service.delete(kv_key)
+        _ = kv_service.delete(kv_key, id_attribute="key")
