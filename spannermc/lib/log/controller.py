@@ -164,6 +164,7 @@ class BeforeSendHandler:
         )
         self.response_extractor = ResponseDataExtractor(
             extract_body="body" in settings.log.RESPONSE_FIELDS,
+            extract_cookies="cookies" in settings.log.RESPONSE_FIELDS,
             extract_headers="headers" in settings.log.RESPONSE_FIELDS,
             extract_status_code="status_code" in settings.log.RESPONSE_FIELDS,
             obfuscate_cookies=settings.log.OBFUSCATE_COOKIES,

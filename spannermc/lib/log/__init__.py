@@ -28,7 +28,7 @@ default_processors = [
     structlog.contextvars.merge_contextvars,
     controller.drop_health_logs,
     structlog.processors.TimeStamper(fmt="iso", utc=True),
-    structlog.processors.StackInfoRenderer(["click", "rich_click"]),
+    structlog.processors.StackInfoRenderer(["click", "rich"]),
 ]
 
 stdlib_processors = [
