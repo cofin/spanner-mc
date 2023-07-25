@@ -20,9 +20,7 @@ from litestar.status_codes import HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ER
 from structlog.contextvars import bind_contextvars
 
 __all__ = [
-    "ApplicationClientError",
     "ApplicationError",
-    "AuthorizationError",
     "MissingDependencyError",
     "after_exception_hook_handler",
     "exception_to_http_response",
@@ -40,14 +38,6 @@ if TYPE_CHECKING:
 
 class ApplicationError(Exception):
     """Base exception type for the lib's custom exception types."""
-
-
-class ApplicationClientError(ApplicationError):
-    """Base exception type for client errors."""
-
-
-class AuthorizationError(ApplicationClientError):
-    """A user tried to do something they shouldn't have."""
 
 
 class MissingDependencyError(ApplicationError, ValueError):
