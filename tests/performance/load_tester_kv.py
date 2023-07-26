@@ -1,6 +1,6 @@
 import logging
 import os
-from uuid import UUID
+from uuid import uuid4
 
 import dotenv
 import google.auth.transport.requests
@@ -41,14 +41,14 @@ class WebsiteTestUser(FastHttpUser):  # type: ignore
 
     @staticmethod
     def unique_key() -> str:
-        return str(UUID())
+        return str(uuid4())
 
     def on_start(self):
         # set up urls
 
         # urls used in task
-        self.kv_create_url = f"{self.host}api/events"
-        self.kv_get_by_key_url = f"{self.host}api/events/"
+        self.kv_create_url = f"{self.host}api/kv"
+        self.kv_get_by_key_url = f"{self.host}api/kv/"
 
         # set headers with access token
         self.headers = {
@@ -56,11 +56,6 @@ class WebsiteTestUser(FastHttpUser):  # type: ignore
         }
 
     def on_stop(self):
-        pass
-
-    # enable this dummy task to develop 'on_start'
-    # @task
-    def dummy(self):
         pass
 
     @task
