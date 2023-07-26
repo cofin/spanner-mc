@@ -43,7 +43,6 @@ def create_app() -> Litestar:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
     log.get_logger()
-    otel_config = otel.configure_instrumentation()
     application_dependencies = {constants.USER_DEPENDENCY_KEY: Provide(provide_user, sync_to_thread=False)}
     application_dependencies.update(dependencies.create_collection_dependencies())
 
@@ -57,7 +56,7 @@ def create_app() -> Litestar:
         },
         debug=settings.app.DEBUG,
         before_send=[log.controller.BeforeSendHandler()],
-        middleware=[log.controller.middleware_factory, otel_config.middleware],
+        middleware=[log.controller.middleware_factory, otel.config.middleware],
         logging_config=log.config,
         openapi_config=domain.openapi.config,
         type_encoders={SecretStr: str, BaseModel: _base_model_encoder},

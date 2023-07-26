@@ -59,3 +59,6 @@ def configure_instrumentation() -> OpenTelemetryConfig:
     return OpenTelemetryConfig(
         meter=metrics.get_meter(__name__), tracer_provider=tracer_provider, meter_provider=meter_provider
     )
+
+
+config = configure_instrumentation()
