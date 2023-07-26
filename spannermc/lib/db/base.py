@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from google.cloud import spanner
+from google.cloud import spanner  # type: ignore[attr-defined]
 from litestar.contrib.sqlalchemy.plugins.init.config import (
     SQLAlchemySyncConfig,
 )
@@ -14,6 +14,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from spannermc.lib import constants, settings
+
+__all__ = ["session"]
+
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
