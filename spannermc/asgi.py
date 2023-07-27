@@ -28,7 +28,6 @@ def create_app() -> Litestar:
     from spannermc import domain
     from spannermc.domain.security import provide_user
     from spannermc.lib import (
-        compression,
         constants,
         cors,
         db,
@@ -47,7 +46,6 @@ def create_app() -> Litestar:
     application_dependencies.update(dependencies.create_collection_dependencies())
 
     return Litestar(
-        compression_config=compression.config,
         cors_config=cors.config,
         dependencies=application_dependencies,
         exception_handlers={

@@ -37,7 +37,7 @@ class WebsiteTestUser(FastHttpUser):  # type: ignore
 
     @staticmethod
     def unique_value() -> str:
-        return fake.text()
+        return str(uuid4())
 
     @staticmethod
     def unique_key() -> str:

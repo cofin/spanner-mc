@@ -9,7 +9,7 @@ from sqlalchemy.orm import noload
 from spannermc.domain import urls
 from spannermc.domain.accounts.models import User
 from spannermc.domain.accounts.services import UserService
-from spannermc.lib import constants, settings
+from spannermc.lib import constants, db, settings
 
 if TYPE_CHECKING:
     from litestar.connection import ASGIConnection, Request
@@ -44,6 +44,7 @@ def current_user_from_token(token: Token, connection: ASGIConnection[Any, Any, A
         User: User record mapped to the JWT identifier
     """
     with UserService.new(
+        session=db.config.provide_session(connection.app.state, connection.scope),
         statement=select(User).options(noload("*")),
     ) as service:
         user = service.get_one_or_none(email=token.sub)
