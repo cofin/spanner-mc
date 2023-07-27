@@ -46,8 +46,8 @@ def configure_instrumentation() -> OpenTelemetryConfig:
     )
 
     metrics.set_meter_provider(meter_provider)
-    # Create and export one trace every 100 requests
-    _sampler = ParentBasedTraceIdRatio(1 / 100)
+    # Create and export one trace every 25 requests
+    _sampler = ParentBasedTraceIdRatio(1 / 25)
     tracer_provider = TracerProvider(resource=_resources, sampler=_sampler)
     trace.set_tracer_provider(tracer_provider)
     trace.get_tracer_provider().add_span_processor(  # type: ignore[attr-defined]

@@ -90,7 +90,7 @@ class EventController(Controller):
     ) -> Event:
         """Create a new event."""
         obj = data.as_builtins()
-        obj.update({"owner_id": current_user.id})
+        obj.update({"user_id": current_user.id})
         db_obj = events_service.create(obj)
         return events_service.to_dto(db_obj)
 

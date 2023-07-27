@@ -1631,7 +1631,7 @@ structlog = ["structlog"]
 type = "git"
 url = "https://github.com/litestar-org/litestar.git"
 reference = "main"
-resolved_reference = "63e80614a2100113d0d95f510deed720dc82acc6"
+resolved_reference = "7650886a3424ef8a16575b2772d62e40ea80125c"
 
 [[package]]
 name = "locust"
@@ -2057,6 +2057,25 @@ files = [
 [package.dependencies]
 deprecated = ">=1.2.6"
 importlib-metadata = ">=6.0,<7.0"
+
+[[package]]
+name = "opentelemetry-distro"
+version = "0.40b0"
+description = "OpenTelemetry Python Distro"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "opentelemetry_distro-0.40b0-py3-none-any.whl", hash = "sha256:2fd0f1615d9122ff008feecffa27f213364929fc67632bb2feb7eef734434323"},
+    {file = "opentelemetry_distro-0.40b0.tar.gz", hash = "sha256:1502c90219080ab29ae39e310bd9bf025c1265b1da06aac0c9ea44f93aa5f0ff"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.40b0"
+opentelemetry-sdk = ">=1.13,<2.0"
+
+[package.extras]
+otlp = ["opentelemetry-exporter-otlp (==1.19.0)"]
 
 [[package]]
 name = "opentelemetry-exporter-gcp-monitoring"
@@ -3693,4 +3712,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "91e33b919b4ec0376f35b9dbb3cb05b34905202404585da77628f14e8fd0da87"
+content-hash = "8542f4f1f277ca967451d8ffd0505627f5e6ba3ef20677f4a360a9b6e44cf5a0"
