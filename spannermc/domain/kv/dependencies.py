@@ -24,6 +24,6 @@ def provides_kv_service(db_session: Session) -> Generator[KVStoreService, None, 
     """Construct repository and service objects for the request."""
     with KVStoreService.new(
         session=db_session,
-        statement=select(KVStore).with_statement_hint(text="@{FORCE_INDEX=uk_kv_key}"),
+        statement=select(KVStore).with_hint(KVStore.__table__, text="@{FORCE_INDEX=uk_kv_key}"),
     ) as service:
         yield service
