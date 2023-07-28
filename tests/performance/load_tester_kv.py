@@ -1,5 +1,7 @@
 import logging
 import os
+import random
+import string
 from uuid import uuid4
 
 import dotenv
@@ -43,15 +45,53 @@ class WebsiteTestUser(FastHttpUser):  # type: ignore
     def unique_key() -> str:
         return str(uuid4())
 
+    @staticmethod
+    def unique_email() -> str:
+        random_string = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))  # noqa: S311
+        return f"{random_string}{fake.email()}"
+
+    @staticmethod
+    def unique_name() -> str:
+        return fake.name()
+
     def on_start(self):
         # set up urls
 
+        register_url = f"{self.host}api/access/signup"
+        get_token_url = f"{self.host}api/access/login"
         # urls used in task
         self.kv_create_url = f"{self.host}api/kv"
         self.kv_get_by_key_url = f"{self.host}api/kv/"
 
+        # get unique email
+        email = self.unique_email()
+        name = self.unique_name()
+        password = "abcdefghi"  # noqa: S105
+
+        # register
+        response = self.client.post(
+            register_url,
+            json={"email": email, "password": password, "name": name},
+            headers={"X-Serverless-Authorization": f"Bearer {self.id_token}"},
+        )
+        if response.status_code != 201:
+            error_msg = f"register: response.status_code = {response.status_code}, expected 201"
+            logging.error(error_msg)
+
+        # get_token
+        # - username instead of email
+        # - x-www-form-urlencoded (instead of json)
+        response = self.client.post(
+            get_token_url,
+            data={"username": email, "password": password},
+            headers={"X-Serverless-Authorization": f"Bearer {self.id_token}"},
+        )
+        access_token = response.json()["access_token"]
+        logging.debug("get_token: for email = %s, access_token = %s", email, access_token)
+
         # set headers with access token
         self.headers = {
+            "Authorization": f"Bearer {access_token}",
             "X-Serverless-Authorization": f"Bearer {self.id_token}",
         }
 

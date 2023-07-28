@@ -1631,7 +1631,7 @@ structlog = ["structlog"]
 type = "git"
 url = "https://github.com/litestar-org/litestar.git"
 reference = "main"
-resolved_reference = "7650886a3424ef8a16575b2772d62e40ea80125c"
+resolved_reference = "6b08a1ead292a6ae8be04b04085870ad31ef3d05"
 
 [[package]]
 name = "locust"
